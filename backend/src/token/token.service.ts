@@ -6,6 +6,7 @@ import type { User } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma.service';
 
 const REFRESH_TOKEN_EXPIRATION_TIME = 30 * 24 * 60 * 60 * 1000;
+const USER_AGENT_MAX_LENGTH = 255;
 
 @Injectable()
 export class TokenService {
@@ -29,20 +30,56 @@ export class TokenService {
   saveRefreshToken(userId: number, refreshToken: string, userAgent: string, ip: string) {
     const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
 
+    const ua =
+      typeof userAgent === 'string'
+        ? userAgent.length > USER_AGENT_MAX_LENGTH
+          ? userAgent.slice(0, USER_AGENT_MAX_LENGTH)
+          : userAgent
+        : '';
+
     return this.prisma.refreshToken.create({
       data: {
         userId,
         refreshToken: tokenHash,
-        userAgent,
+        userAgent: ua,
         ip,
         expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRATION_TIME),
       },
     });
   }
 
+  async findSession(userAgent: string, userId: number) {
+    const ua =
+      typeof userAgent === 'string'
+        ? userAgent.length > USER_AGENT_MAX_LENGTH
+          ? userAgent.slice(0, USER_AGENT_MAX_LENGTH)
+          : userAgent
+        : '';
+
+    const session = await this.prisma.refreshToken.findFirst({
+      where: { userAgent: ua, userId },
+    });
+
+    if (!session) {
+      return null;
+    }
+
+    if (session.expiresAt < new Date()) {
+      return null;
+    }
+
+    return session;
+  }
+
   async removeRefreshToken(refreshToken: string) {
     const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
 
+    await this.prisma.refreshToken.deleteMany({
+      where: { refreshToken: tokenHash },
+    });
+  }
+
+  async removeRefreshTokenByHash(tokenHash: string) {
     await this.prisma.refreshToken.deleteMany({
       where: { refreshToken: tokenHash },
     });
