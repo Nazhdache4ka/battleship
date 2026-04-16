@@ -14,6 +14,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   const port = configService.get<number>('PORT') ?? 3000;
 
+  app.enableCors({
+    origin: configService.get<string>('FRONTEND_URL'),
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
+
   const config = new DocumentBuilder()
     .setTitle('Battleship')
     .setDescription('Battleship online web game')
