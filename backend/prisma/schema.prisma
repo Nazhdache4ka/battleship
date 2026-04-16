@@ -15,13 +15,10 @@ datasource db {
 
 model User {
   id Int @id @default(autoincrement())
-  name String 
+  name String @unique
   email String @unique
   password String
   createdAt DateTime @default(now())
-
-  rating Int @default(1000)
-  role Role @default(USER)
 
   refreshTokens RefreshToken[]
 }
@@ -35,9 +32,4 @@ model RefreshToken {
   ip String?
   expiresAt DateTime
   createdAt DateTime @default(now())
-}
-
-enum Role {
-  USER
-  ADMIN
 }

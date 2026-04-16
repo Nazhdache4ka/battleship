@@ -4,7 +4,6 @@ import { UsersService } from 'src/users/users.service';
 import * as bcryptjs from 'bcryptjs';
 import { TokenService } from 'src/token/token.service';
 import { UserResponseDto } from 'src/users/dto/user-response.dto';
-import { AuthLoginDto } from './dto/auth-login.dto';
 
 const USER_AGENT_MAX_LENGTH = 255;
 
@@ -15,7 +14,7 @@ export class AuthService {
     private readonly tokenService: TokenService
   ) {}
 
-  async login(userDto: AuthLoginDto, userAgent: string, ip: string) {
+  async login(userDto: CreateUserDto, userAgent: string, ip: string) {
     const user = await this.validateUser(userDto);
 
     const ua =
@@ -24,12 +23,6 @@ export class AuthService {
           ? userAgent.slice(0, USER_AGENT_MAX_LENGTH)
           : userAgent
         : '';
-
-    const session = await this.tokenService.findSession(ua, user.id);
-
-    if (session) {
-      await this.tokenService.removeRefreshTokenByHash(session.refreshToken);
-    }
 
     const { accessToken, refreshToken } = await this.tokenService.generateTokens(user);
     await this.tokenService.saveRefreshToken(user.id, refreshToken, ua, ip);
@@ -68,7 +61,7 @@ export class AuthService {
     await this.tokenService.removeRefreshToken(refreshToken);
   }
 
-  private async validateUser(userDto: AuthLoginDto) {
+  private async validateUser(userDto: CreateUserDto) {
     const user = await this.usersService.findUserByEmail(userDto.email);
 
     if (!user) {
