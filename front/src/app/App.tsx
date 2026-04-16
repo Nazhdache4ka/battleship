@@ -1,6 +1,6 @@
 import { AppLayout } from '../widgets';
 import { Routes, Route } from 'react-router-dom';
-import { LoginPage } from '../pages';
+import { LoginPage, RegisterPage } from '../pages';
 
 function App() {
   return (
@@ -13,6 +13,10 @@ function App() {
           <Route
             path="/login"
             element={<LoginPage />}
+          />
+          <Route
+            path="/register"
+            element={<RegisterPage />}
           />
         </Route>
       </Routes>
