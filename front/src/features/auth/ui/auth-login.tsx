@@ -6,7 +6,6 @@ import { ErrorAlert } from '../../../shared';
 export function AuthLogin() {
   const { login, isPending, errorMessage, openSnackbar, setOpenSnackbar } = useAuthLogin();
 
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -52,14 +51,7 @@ export function AuthLogin() {
             Login
           </Typography>
           <TextField
-            label="Name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            fullWidth
-            autoComplete="name"
-          />
-          <TextField
-            label="Email"
+            label="email"
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
@@ -67,7 +59,7 @@ export function AuthLogin() {
             autoComplete="email"
           />
           <TextField
-            label="Password"
+            label="password"
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
@@ -77,7 +69,7 @@ export function AuthLogin() {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => login({ name, email, password })}
+            onClick={() => login({ email, password })}
             disabled={isPending}
             fullWidth
           >

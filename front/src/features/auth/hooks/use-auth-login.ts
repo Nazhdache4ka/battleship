@@ -14,8 +14,7 @@ export function useAuthLogin() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
   const { mutate: login, isPending } = useMutation({
-    mutationFn: ({ name, email, password }: { name: string; email: string; password: string }) =>
-      AuthService.login(name, email, password),
+    mutationFn: ({ email, password }: { email: string; password: string }) => AuthService.login(email, password),
     onSuccess: ({ accessToken, user }) => {
       setIsAuth(true);
       setUser(user);

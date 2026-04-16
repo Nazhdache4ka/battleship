@@ -1,8 +1,8 @@
 import { axiosConfig } from '../../../shared';
 
 export class AuthService {
-  static async login(name: string, email: string, password: string) {
-    const response = await axiosConfig.post('/auth/login', { name, email, password });
+  static async login(email: string, password: string) {
+    const response = await axiosConfig.post('/auth/login', { email, password });
     return response.data;
   }
 
