@@ -4,6 +4,7 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthSessionResponseDto } from './dto/auth-session-response.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { AuthLoginDto } from './dto/auth-login.dto';
 
 const REFRESH_TOKEN_EXPIRATION_TIME = 30 * 24 * 60 * 60 * 1000;
 
@@ -17,10 +18,10 @@ export class AuthController {
     description: 'The user has been successfully logged in',
     type: AuthSessionResponseDto,
   })
-  @ApiBody({ type: CreateUserDto })
+  @ApiBody({ type: AuthLoginDto })
   @Post('login')
   async login(
-    @Body() userDto: CreateUserDto,
+    @Body() userDto: AuthLoginDto,
     @Headers('user-agent') userAgent: string | undefined,
     @Ip() ip: string,
     @Res({ passthrough: true }) response: Response
