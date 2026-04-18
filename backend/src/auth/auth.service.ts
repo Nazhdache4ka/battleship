@@ -5,8 +5,7 @@ import * as bcryptjs from 'bcryptjs';
 import { TokenService } from 'src/token/token.service';
 import { UserResponseDto } from 'src/users/dto/user-response.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
-
-const USER_AGENT_MAX_LENGTH = 255;
+import { getUserAgent } from 'src/utils/get-user-agent';
 
 @Injectable()
 export class AuthService {
@@ -18,12 +17,13 @@ export class AuthService {
   async login(userDto: AuthLoginDto, userAgent: string, ip: string) {
     const user = await this.validateUser(userDto);
 
-    const ua =
-      typeof userAgent === 'string'
-        ? userAgent.length > USER_AGENT_MAX_LENGTH
-          ? userAgent.slice(0, USER_AGENT_MAX_LENGTH)
-          : userAgent
-        : '';
+    const ua = getUserAgent(userAgent);
+
+    const session = await this.tokenService.findSession(ua, user.id);
+
+    if (session) {
+      await this.tokenService.removeRefreshTokenByHash(session.refreshToken);
+    }
 
     const session = await this.tokenService.findSession(ua, user.id);
 
@@ -49,12 +49,7 @@ export class AuthService {
     const hashPassword = await bcryptjs.hash(userDto.password, 10);
     const newUser = await this.usersService.createUser({ ...userDto, password: hashPassword });
 
-    const ua =
-      typeof userAgent === 'string'
-        ? userAgent.length > USER_AGENT_MAX_LENGTH
-          ? userAgent.slice(0, USER_AGENT_MAX_LENGTH)
-          : userAgent
-        : '';
+    const ua = getUserAgent(userAgent);
 
     const { accessToken, refreshToken } = await this.tokenService.generateTokens(newUser);
     await this.tokenService.saveRefreshToken(newUser.id, refreshToken, ua, ip);
