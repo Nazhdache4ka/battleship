@@ -15,4 +15,9 @@ export class AuthService {
     const response = await axiosConfig.post('/auth/logout');
     return response.data;
   }
+
+  static async refresh() {
+    const response = await axiosConfig.post('/auth/refresh');
+    return response.data;
+  }
 }

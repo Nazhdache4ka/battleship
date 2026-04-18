@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { CssBaseline } from '@mui/material';
 import './index.css';
 import App from './app/App.tsx';
+import { setupAxiosInterceptors } from './app/interceptors.ts';
 
 const queryClient = new QueryClient();
 
@@ -14,6 +15,8 @@ const root = document.getElementById('root');
 if (!root) {
   throw new Error('Root element not found');
 }
+
+setupAxiosInterceptors();
 
 createRoot(root).render(
   <StrictMode>
