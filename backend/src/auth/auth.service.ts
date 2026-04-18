@@ -25,6 +25,12 @@ export class AuthService {
       await this.tokenService.removeRefreshTokenByHash(session.refreshToken);
     }
 
+    const session = await this.tokenService.findSession(ua, user.id);
+
+    if (session) {
+      await this.tokenService.removeRefreshTokenByHash(session.refreshToken);
+    }
+
     const { accessToken, refreshToken } = await this.tokenService.generateTokens(user);
     await this.tokenService.saveRefreshToken(user.id, refreshToken, ua, ip);
 
