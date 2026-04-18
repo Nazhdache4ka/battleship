@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useAuthLogin } from '../hooks';
-import { ErrorAlert } from '../../../shared';
+import { ErrorAlert } from '@/shared';
 
 export function AuthLogin() {
   const { login, isPending, errorMessage, openSnackbar, setOpenSnackbar } = useAuthLogin();

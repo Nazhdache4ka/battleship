@@ -15,7 +15,8 @@ import {
 } from '@mui/material';
 import { GiBattleship } from 'react-icons/gi';
 import { Link } from 'react-router-dom';
-import { useAuthStore } from '../../shared';
+import { AuthLogout } from '@/features';
+import { useAuthStore } from '@/shared';
 import { useNavigate } from 'react-router-dom';
 
 export function Header() {
@@ -91,12 +92,7 @@ export function Header() {
                   >
                     Games History
                   </MenuItem>
-                  <MenuItem
-                    onClick={handleCloseUserMenu}
-                    sx={{ color: 'error.main' }}
-                  >
-                    Logout
-                  </MenuItem>
+                  <AuthLogout />
                 </Menu>
               </>
             ) : (

@@ -1,4 +1,4 @@
-import { axiosConfig } from '../../../shared';
+import { axiosConfig } from '@/shared';
 
 export class AuthService {
   static async login(email: string, password: string) {

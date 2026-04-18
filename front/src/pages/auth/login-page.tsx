@@ -1,4 +1,4 @@
-import { AuthLogin } from '../../features';
+import { AuthLogin } from '@/features';
 
 export function LoginPage() {
   return (

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useAuthRegister } from '../hooks';
-import { ErrorAlert } from '../../../shared';
+import { ErrorAlert } from '@/shared';
 
 export function AuthRegister() {
   const { register, isPending, setOpenSnackbar, errorMessage, openSnackbar } = useAuthRegister();

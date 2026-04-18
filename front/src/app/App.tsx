@@ -1,6 +1,6 @@
 import { AppLayout } from '../widgets';
 import { Routes, Route } from 'react-router-dom';
-import { LoginPage, RegisterPage } from '../pages';
+import { LoginPage, RegisterPage } from '@/pages';
 
 function App() {
   return (

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { useAuthStore } from '../../../shared';
+import { useAuthStore } from '@/shared';
 import { AuthService } from '../api';
 
 export function useAuthRegister() {

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { AuthService } from '../api';
-import { useAuthStore } from '@/shared';
-import { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/shared';
+import type { AxiosError } from 'axios';
 
-export function useAuthLogin() {
+export function useAuthLogout() {
   const navigate = useNavigate();
 
   const { setIsAuth, setUser } = useAuthStore();
@@ -13,13 +13,13 @@ export function useAuthLogin() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  const { mutate: login, isPending } = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => AuthService.login(email, password),
-    onSuccess: ({ accessToken, user }) => {
-      setIsAuth(true);
-      setUser(user);
-      localStorage.setItem('accessToken', accessToken);
-      navigate('/');
+  const { mutate: logout, isPending } = useMutation({
+    mutationFn: () => AuthService.logout(),
+    onSuccess: () => {
+      setIsAuth(false);
+      setUser(null);
+      localStorage.removeItem('accessToken');
+      navigate('/login');
     },
     onError: (error: AxiosError<{ message: string }>) => {
       setErrorMessage(error.response?.data.message ?? 'An error occurred');
@@ -27,5 +27,5 @@ export function useAuthLogin() {
     },
   });
 
-  return { login, isPending, errorMessage, openSnackbar, setOpenSnackbar };
+  return { logout, isPending, errorMessage, openSnackbar, setOpenSnackbar };
 }
