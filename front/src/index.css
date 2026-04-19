@@ -1,4 +1,11 @@
+@import '@bprogress/core/css';
+
 * {
   margin: 0;
   box-sizing: border-box;
+}
+
+:root {
+  --bprogress-color: red;
+  --bprogress-height: 3px;
 }

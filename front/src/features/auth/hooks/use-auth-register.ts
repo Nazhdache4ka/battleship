@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { AxiosError } from 'axios';
 import { useAuthStore } from '@/shared';
 import { AuthService } from '../api';
@@ -20,7 +20,7 @@ export function useAuthRegister() {
       setIsAuth(true);
       setUser(user);
       localStorage.setItem('accessToken', accessToken);
-      navigate('/');
+      navigate({ to: '/' });
     },
     onError: (error: AxiosError<{ message: string }>) => {
       setErrorMessage(error.response?.data.message ?? 'An error occurred');
