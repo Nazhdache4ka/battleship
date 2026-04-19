@@ -12,12 +12,13 @@ import {
   Avatar,
   Menu,
   MenuItem,
+  Checkbox,
+  FormLabel,
 } from '@mui/material';
 import { GiBattleship } from 'react-icons/gi';
-import { Link } from 'react-router-dom';
+import { Link, useBlocker, useNavigate } from '@tanstack/react-router';
 import { AuthLogout } from '@/features';
 import { useAuthStore } from '@/shared';
-import { useNavigate } from 'react-router-dom';
 
 export function Header() {
   const isAuth = useAuthStore(state => state.isAuth);
@@ -26,6 +27,9 @@ export function Header() {
   const navigate = useNavigate();
 
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+
+  const [isBlocking, setIsBlocking] = useState(false);
+
   const open = Boolean(anchorElUser);
 
   const handleOpenUserMenu = (event: MouseEvent<HTMLElement>) => {
@@ -35,6 +39,18 @@ export function Header() {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+
+  useBlocker({
+    shouldBlockFn: () => {
+      if (!isBlocking) {
+        return false;
+      }
+
+      const shouldLeave = confirm('Are you sure you want to leave?');
+      return !shouldLeave;
+    },
+    disabled: !isBlocking,
+  });
 
   return (
     <AppBar position="static">
@@ -70,6 +86,24 @@ export function Header() {
               </Button>
             ))}
           </Box>
+
+          <FormLabel sx={{ backgroundColor: 'white', padding: 1, borderRadius: 1 }}>
+            <Checkbox
+              value={isBlocking}
+              onChange={() => setIsBlocking(!isBlocking)}
+              title="Is blocking"
+            />
+
+            <Typography>Use penis</Typography>
+          </FormLabel>
+
+          <Link
+            to="/$notSlug/news"
+            search={{ page: 1, limit: 10 }}
+            params={{ notSlug: 'news' }}
+          >
+            News
+          </Link>
           <Box sx={{ flexGrow: 0 }}>
             {isAuth ? (
               <>
@@ -100,14 +134,14 @@ export function Header() {
                 <Button
                   variant="contained"
                   sx={{ bgcolor: 'secondary.main', mx: 1 }}
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate({ to: '/login' })}
                 >
                   Login
                 </Button>
                 <Button
                   variant="contained"
                   sx={{ bgcolor: 'error.main', mx: 1 }}
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate({ to: '/register' })}
                 >
                   Register
                 </Button>

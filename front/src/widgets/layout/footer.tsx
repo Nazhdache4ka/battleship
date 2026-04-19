@@ -1,5 +1,5 @@
 import { Box, Container, Link, Tooltip, Typography } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from '@tanstack/react-router';
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
 
 const footerLinks = [
