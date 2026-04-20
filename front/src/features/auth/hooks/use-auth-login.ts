@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { AuthService } from '../api';
 import { useAuthStore } from '@/shared';
 import { AxiosError } from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 
 export function useAuthLogin() {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export function useAuthLogin() {
       setIsAuth(true);
       setUser(user);
       localStorage.setItem('accessToken', accessToken);
-      navigate('/');
+      navigate({ to: '/' });
     },
     onError: (error: AxiosError<{ message: string }>) => {
       setErrorMessage(error.response?.data.message ?? 'An error occurred');

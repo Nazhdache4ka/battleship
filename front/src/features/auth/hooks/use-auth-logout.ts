@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { AuthService } from '../api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '@/shared';
 import type { AxiosError } from 'axios';
 
@@ -19,7 +19,7 @@ export function useAuthLogout() {
       setIsAuth(false);
       setUser(null);
       localStorage.removeItem('accessToken');
-      navigate('/login');
+      navigate({ to: '/login' });
     },
     onError: (error: AxiosError<{ message: string }>) => {
       setErrorMessage(error.response?.data.message ?? 'An error occurred');

@@ -14,10 +14,9 @@ import {
   MenuItem,
 } from '@mui/material';
 import { GiBattleship } from 'react-icons/gi';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { AuthLogout } from '@/features';
 import { useAuthStore } from '@/shared';
-import { useNavigate } from 'react-router-dom';
 
 export function Header() {
   const isAuth = useAuthStore(state => state.isAuth);
@@ -98,16 +97,16 @@ export function Header() {
             ) : (
               <>
                 <Button
-                  variant="contained"
-                  sx={{ bgcolor: 'secondary.main', mx: 1 }}
-                  onClick={() => navigate('/login')}
+                  variant="outlined"
+                  sx={{ color: 'white', borderColor: 'white', mx: 1 }}
+                  onClick={() => navigate({ to: '/login' })}
                 >
                   Login
                 </Button>
                 <Button
-                  variant="contained"
-                  sx={{ bgcolor: 'error.main', mx: 1 }}
-                  onClick={() => navigate('/register')}
+                  variant="outlined"
+                  sx={{ color: 'white', borderColor: 'white', mx: 1 }}
+                  onClick={() => navigate({ to: '/register' })}
                 >
                   Register
                 </Button>
