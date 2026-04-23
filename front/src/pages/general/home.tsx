@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import {
   alpha,
   Box,
@@ -18,6 +19,8 @@ import SportsEsportsOutlinedIcon from '@mui/icons-material/SportsEsports';
 import { ShipPlacement } from '@/widgets';
 
 export function Home() {
+  const navigate = useNavigate();
+
   return (
     <Box
       component="main"
@@ -150,6 +153,7 @@ export function Home() {
                 variant="outlined"
                 size="large"
                 sx={{ minWidth: { sm: 200 }, py: 1.25, fontWeight: 600 }}
+                onClick={() => navigate({ to: '/game-mode/single-player' })}
               >
                 Local two-player
               </Button>

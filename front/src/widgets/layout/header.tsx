@@ -120,6 +120,7 @@ export function Header() {
 }
 
 const navItems = [
+  { label: 'Game Mode', to: '/game-mode' },
   { label: 'Leaderboard', to: '/leaderboard' },
   { label: 'Rules', to: '/rules' },
   { label: 'About', to: '/about' },
