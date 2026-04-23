@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './app/__root'
 import { Route as MainLayoutRouteImport } from './app/_main/layout'
 import { Route as MainIndexRouteImport } from './app/_main/index'
+import { Route as MaingameGameModeRouteImport } from './app/_main/(game)/game-mode'
 import { Route as MainauthRegisterRouteImport } from './app/_main/(auth)/register'
 import { Route as MainauthLoginRouteImport } from './app/_main/(auth)/login'
+import { Route as MaingameGameModeSinglePlayerRouteImport } from './app/_main/(game)/game-mode.single-player'
 
 const MainLayoutRoute = MainLayoutRouteImport.update({
   id: '/_main',
@@ -21,6 +23,11 @@ const MainLayoutRoute = MainLayoutRouteImport.update({
 const MainIndexRoute = MainIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => MainLayoutRoute,
+} as any)
+const MaingameGameModeRoute = MaingameGameModeRouteImport.update({
+  id: '/(game)/game-mode',
+  path: '/game-mode',
   getParentRoute: () => MainLayoutRoute,
 } as any)
 const MainauthRegisterRoute = MainauthRegisterRouteImport.update({
@@ -33,16 +40,26 @@ const MainauthLoginRoute = MainauthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => MainLayoutRoute,
 } as any)
+const MaingameGameModeSinglePlayerRoute =
+  MaingameGameModeSinglePlayerRouteImport.update({
+    id: '/single-player',
+    path: '/single-player',
+    getParentRoute: () => MaingameGameModeRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
   '/login': typeof MainauthLoginRoute
   '/register': typeof MainauthRegisterRoute
+  '/game-mode': typeof MaingameGameModeRouteWithChildren
+  '/game-mode/single-player': typeof MaingameGameModeSinglePlayerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
   '/login': typeof MainauthLoginRoute
   '/register': typeof MainauthRegisterRoute
+  '/game-mode': typeof MaingameGameModeRouteWithChildren
+  '/game-mode/single-player': typeof MaingameGameModeSinglePlayerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,18 +67,27 @@ export interface FileRoutesById {
   '/_main/': typeof MainIndexRoute
   '/_main/(auth)/login': typeof MainauthLoginRoute
   '/_main/(auth)/register': typeof MainauthRegisterRoute
+  '/_main/(game)/game-mode': typeof MaingameGameModeRouteWithChildren
+  '/_main/(game)/game-mode/single-player': typeof MaingameGameModeSinglePlayerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/game-mode'
+    | '/game-mode/single-player'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register'
+  to: '/' | '/login' | '/register' | '/game-mode' | '/game-mode/single-player'
   id:
     | '__root__'
     | '/_main'
     | '/_main/'
     | '/_main/(auth)/login'
     | '/_main/(auth)/register'
+    | '/_main/(game)/game-mode'
+    | '/_main/(game)/game-mode/single-player'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -84,6 +110,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainIndexRouteImport
       parentRoute: typeof MainLayoutRoute
     }
+    '/_main/(game)/game-mode': {
+      id: '/_main/(game)/game-mode'
+      path: '/game-mode'
+      fullPath: '/game-mode'
+      preLoaderRoute: typeof MaingameGameModeRouteImport
+      parentRoute: typeof MainLayoutRoute
+    }
     '/_main/(auth)/register': {
       id: '/_main/(auth)/register'
       path: '/register'
@@ -98,19 +131,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainauthLoginRouteImport
       parentRoute: typeof MainLayoutRoute
     }
+    '/_main/(game)/game-mode/single-player': {
+      id: '/_main/(game)/game-mode/single-player'
+      path: '/single-player'
+      fullPath: '/game-mode/single-player'
+      preLoaderRoute: typeof MaingameGameModeSinglePlayerRouteImport
+      parentRoute: typeof MaingameGameModeRoute
+    }
   }
 }
+
+interface MaingameGameModeRouteChildren {
+  MaingameGameModeSinglePlayerRoute: typeof MaingameGameModeSinglePlayerRoute
+}
+
+const MaingameGameModeRouteChildren: MaingameGameModeRouteChildren = {
+  MaingameGameModeSinglePlayerRoute: MaingameGameModeSinglePlayerRoute,
+}
+
+const MaingameGameModeRouteWithChildren =
+  MaingameGameModeRoute._addFileChildren(MaingameGameModeRouteChildren)
 
 interface MainLayoutRouteChildren {
   MainIndexRoute: typeof MainIndexRoute
   MainauthLoginRoute: typeof MainauthLoginRoute
   MainauthRegisterRoute: typeof MainauthRegisterRoute
+  MaingameGameModeRoute: typeof MaingameGameModeRouteWithChildren
 }
 
 const MainLayoutRouteChildren: MainLayoutRouteChildren = {
   MainIndexRoute: MainIndexRoute,
   MainauthLoginRoute: MainauthLoginRoute,
   MainauthRegisterRoute: MainauthRegisterRoute,
+  MaingameGameModeRoute: MaingameGameModeRouteWithChildren,
 }
 
 const MainLayoutRouteWithChildren = MainLayoutRoute._addFileChildren(
