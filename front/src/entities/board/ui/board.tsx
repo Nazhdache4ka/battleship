@@ -77,10 +77,7 @@ export function Board({ board, ships }: { board: Board; ships: IShip[] }) {
                 minWidth: BOARD_CELL_PX,
               }}
             >
-              <Ship
-                ship={ship}
-                horizontal={horizontal}
-              />
+              <Ship ship={ship} />
             </Box>
           );
         })}
