@@ -60,12 +60,12 @@ export function Header() {
           <Box sx={{ flexGrow: 1, ml: 2 }}>
             {navItems.map(item => (
               <Button
-                key={item}
-                onClick={() => {}}
+                key={item.label}
+                onClick={() => navigate({ to: item.to })}
                 variant="outlined"
                 sx={{ color: 'white', borderColor: 'white', mx: 1 }}
               >
-                {item}
+                {item.label}
               </Button>
             ))}
           </Box>
@@ -119,4 +119,8 @@ export function Header() {
   );
 }
 
-const navItems = ['Home', 'Leaderboard', 'Rules', 'About'];
+const navItems = [
+  { label: 'Leaderboard', to: '/leaderboard' },
+  { label: 'Rules', to: '/rules' },
+  { label: 'About', to: '/about' },
+];
