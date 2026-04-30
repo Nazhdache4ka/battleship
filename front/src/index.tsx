@@ -10,6 +10,12 @@ import { routeTree } from './routeTree.gen.ts';
 
 const router = createRouter({ routeTree });
 
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
 const queryClient = new QueryClient();
 
 const root = document.getElementById('root');
