@@ -8,7 +8,7 @@ import type { AxiosError } from 'axios';
 export function useAuthLogout() {
   const navigate = useNavigate();
 
-  const { setIsAuth, setUser } = useAuthStore();
+  const { setIsAuth, setUser, setUserBoard } = useAuthStore();
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -18,6 +18,7 @@ export function useAuthLogout() {
     onSuccess: () => {
       setIsAuth(false);
       setUser(null);
+      setUserBoard(null);
       localStorage.removeItem('accessToken');
       navigate({ to: '/login' });
     },

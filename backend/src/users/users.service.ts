@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { JsonValue } from '@prisma/client/runtime/client';
 import { PrismaService } from 'src/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 
@@ -29,5 +30,28 @@ export class UsersService {
     });
 
     return user;
+  }
+
+  async getUserBoardPreset(userId: number) {
+    const row = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { boardPreset: true },
+    });
+
+    if (!row) {
+      return [];
+    }
+
+    const boardPreset = row.boardPreset as JsonValue;
+    return boardPreset;
+  }
+
+  async saveUserBoardPreset(boardPreset: [], userId: number) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { boardPreset },
+    });
+
+    return true;
   }
 }

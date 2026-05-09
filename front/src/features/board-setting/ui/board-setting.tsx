@@ -55,6 +55,7 @@ export function BoardSetting() {
       <Board
         board={board}
         ships={ships}
+        variant="setting"
       />
     </DragDropProvider>
   );

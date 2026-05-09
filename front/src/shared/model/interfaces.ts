@@ -1,3 +1,5 @@
+import type { AI_TURN_RULES } from './models';
+
 export interface IUser {
   id: number;
   name: string;
@@ -51,4 +53,27 @@ export type CellDropData = {
 export type ShipDragData = {
   type: 'ship';
   ship: IShip;
+};
+
+export type AiShotHistory = {
+  x: number;
+  y: number;
+  result: 'hit' | 'miss' | 'sunk';
+};
+
+export type BoardRequest = {
+  playerBoardForAi: ('unknown' | 'hit' | 'miss')[][];
+  aiShotHistory: AiShotHistory[];
+};
+
+export type AiTurnRequest = {
+  board: BoardRequest;
+  rules: AiTurnRules;
+};
+
+export type AiTurnRules = typeof AI_TURN_RULES;
+
+export type AiTurnResponse = {
+  target: Coordinates;
+  message: string;
 };

@@ -1,4 +1,6 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+import { GameModesPage, ShipPlacement } from '@/widgets';
+import { Container } from '@mui/material';
 
 export const Route = createFileRoute('/_main/(game)/game-mode')({
   component: RouteComponent,
@@ -6,9 +8,14 @@ export const Route = createFileRoute('/_main/(game)/game-mode')({
 
 function RouteComponent() {
   return (
-    <div>
-      Hello "/_main/(game)/game-mode"
-      <Outlet />
-    </div>
+    <>
+      <GameModesPage />
+      <Container
+        maxWidth="xl"
+        sx={{ my: 4 }}
+      >
+        <ShipPlacement />
+      </Container>
+    </>
   );
 }

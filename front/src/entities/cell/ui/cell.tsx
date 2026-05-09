@@ -1,12 +1,16 @@
 import { CellState, DND_SHIP_TYPE, type ICell, type ICellEnemy } from '@/shared';
 import { Box } from '@mui/material';
 import { useDragOperation, useDroppable } from '@dnd-kit/react';
+import fireImage from '../../../../assets/kenney_pirate-pack/PNG/Default size/Effects/fire2.png';
+import missImage from '../../../../assets/kenney_pirate-pack/PNG/Default size/Effects/cross.png';
 
 interface CellProps {
   cell: ICell | ICellEnemy;
+  variant: 'player' | 'enemy' | 'setting';
+  onClick?: (cell: ICell) => void;
 }
 
-export function Cell({ cell }: CellProps) {
+export function Cell({ cell, variant, onClick }: CellProps) {
   const droppableId = `${cell.x}-${cell.y}`;
 
   const { ref } = useDroppable({
@@ -16,11 +20,20 @@ export function Cell({ cell }: CellProps) {
       type: 'cell',
       cell,
     },
+    disabled: variant !== 'setting',
   });
 
   const { target } = useDragOperation();
+
   const isOver = target !== null && String(target?.id) === droppableId;
-  const hasShip = 'shipId' in cell && cell.shipId !== null && cell.state === CellState.SHIP;
+  const hasShip =
+    'shipId' in cell &&
+    cell.shipId !== null &&
+    cell.state === CellState.SHIP &&
+    (variant === 'player' || variant === 'setting');
+
+  const isMiss = cell.state === CellState.MISS;
+  const isHit = cell.state === CellState.HIT;
 
   return (
     <Box
@@ -30,9 +43,13 @@ export function Cell({ cell }: CellProps) {
         minHeight: 0,
         width: '100%',
         height: '100%',
-        bgcolor: hasShip ? 'rgba(25, 118, 210, 0.22)' : 'transparent',
+        bgcolor: isMiss ? 'transparent' : hasShip ? 'rgba(25, 118, 210, 0.22)' : 'transparent',
+        backgroundImage: isHit ? `url(${fireImage})` : isMiss ? `url(${missImage})` : 'none',
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
         border: '1px solid',
-        borderColor: isOver ? '#188d03' : 'divider',
+        borderColor: isMiss ? 'red' : isOver ? '#188d03' : 'divider',
         transform: isOver ? 'scale(1.08)' : 'scale(1)',
         transition: 'transform 0.1s ease-in-out',
         display: 'flex',
@@ -46,7 +63,7 @@ export function Cell({ cell }: CellProps) {
           transition: 'transform 0.1s ease-in-out',
         },
       }}
-      onClick={() => console.log(`${cell.x}, ${cell.y}`)}
+      onClick={() => onClick?.(cell as ICell)}
     />
   );
 }
