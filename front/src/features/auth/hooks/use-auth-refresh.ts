@@ -17,7 +17,6 @@ export function useAuthRefresh() {
       setIsAuth(false);
       setUser(null);
       localStorage.removeItem('accessToken');
-      window.location.href = '/login';
     },
   });
 

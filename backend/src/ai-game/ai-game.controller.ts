@@ -2,8 +2,8 @@ import { Body, Controller, Delete, Param, ParseIntPipe, Post } from '@nestjs/com
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { AiGameService } from './ai-game.service';
 import { StartAiGameDto } from './dto/start-ai-game.dto';
-import { AiTurnDto } from './dto/ai-turn.dto';
 import { AiTurnResponseDto } from './dto/ai-turn-response.dto';
+import { Coordinates } from 'src/types/interfaces';
 
 @Controller('ai-game')
 export class AiGameController {
@@ -22,11 +22,17 @@ export class AiGameController {
   }
 
   @ApiOperation({ summary: 'Send user turn to AI and get AI target' })
-  @ApiBody({ type: AiTurnDto })
   @ApiOkResponse({ description: 'AI turn response', type: AiTurnResponseDto })
   @Post('turn/:sessionId')
-  sendUserTurn(@Param('sessionId', ParseIntPipe) sessionId: number, @Body() aiTurnDto: AiTurnDto) {
-    return this.aiGameService.sendUserTurn(sessionId, aiTurnDto);
+  triggerAiTurns(@Param('sessionId', ParseIntPipe) sessionId: number) {
+    return this.aiGameService.triggerAiTurns(sessionId);
+  }
+
+  @ApiOperation({ summary: 'Apply user turn to AI and get AI response' })
+  @ApiOkResponse({ description: 'AI turn response', type: AiTurnResponseDto })
+  @Post('apply-turn/:sessionId')
+  applyUserTurn(@Param('sessionId', ParseIntPipe) sessionId: number, @Body() target: { target: Coordinates }) {
+    return this.aiGameService.applyUserTurn(sessionId, target.target);
   }
 
   @ApiOperation({ summary: 'Delete AI game session' })

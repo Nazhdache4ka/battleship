@@ -3,25 +3,28 @@ import { Board } from '@/entities';
 import { useAuthStore, useGameStore } from '@/shared';
 import { useAiGameStore } from '../store';
 import { useAiGameHandler } from '../hooks';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { OpenAiSessionService } from '../api/open-ai-session-service';
+import versusIcon from './assets/versus.png';
 
 export function GameBoardAi() {
   const user = useAuthStore(state => state.user);
   const { board, ships } = useGameStore();
-  const { aiBoard, aiShips, sessionId, aiMessage, setSessionId } = useAiGameStore();
-
-  console.log(aiMessage);
+  const { aiBoard, aiShips, sessionId, setSessionId } = useAiGameStore();
 
   const handleUserClick = useAiGameHandler();
 
   useEffect(() => {
-    if (user && !sessionId) {
-      (async () => {
-        const sessionId = await OpenAiSessionService.initializeAiGameSession(user.id, board, aiBoard);
-        setSessionId(sessionId);
-      })();
-    }
+    if (!user || sessionId) return;
+
+    (async () => {
+      const sessionId = await OpenAiSessionService.initializeAiGameSession(user.id, board, aiBoard);
+      setSessionId(sessionId);
+    })();
+  }, [user, board, aiBoard, sessionId, setSessionId]);
+
+  useEffect(() => {
+    if (!sessionId) return;
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
@@ -31,13 +34,15 @@ export function GameBoardAi() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      OpenAiSessionService.deleteAiGameSession(sessionId);
+      setSessionId(null);
     };
-  }, [user, board, aiBoard, sessionId, setSessionId]);
+  }, [sessionId, setSessionId]);
 
   return (
     <Box
       sx={{
-        mt: { xs: 4, md: 10 },
+        mt: { xs: 3, md: 4 },
         display: 'flex',
         flexDirection: { xs: 'column', md: 'row' },
         gap: 2,
@@ -50,12 +55,21 @@ export function GameBoardAi() {
         ships={ships}
         variant="player"
       />
-      <Typography
-        variant="h6"
-        sx={{ fontWeight: 'bold', fontSize: '2rem', fontFamily: 'Creepster', textAlign: 'center' }}
+      <Box
+        sx={{
+          maxWidth: 100,
+          maxHeight: 100,
+        }}
       >
-        VS
-      </Typography>
+        <img
+          src={versusIcon}
+          alt="Versus"
+          style={{
+            width: '100%',
+            height: '100%',
+          }}
+        />
+      </Box>
       <Board
         board={aiBoard}
         ships={aiShips}

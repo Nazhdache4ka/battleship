@@ -1,16 +1,13 @@
-import {
-  alterSurroundingCellsAfterSunk,
-  CellState,
-  getShallowBoard,
-  isShipSunkAfterTurn,
-  type Board,
-  type Coordinates,
-  type IShip,
-} from '@/shared';
+import { Board, CellState, Coordinates, IShip } from 'src/types/interfaces';
+import { getShallowBoard } from './get-shallow-board';
+import { getShallowShips } from './get-shallow-ships';
+import { isShipSunkAfterTurn } from './is-ship-sunk-after-turn';
+import { alterSurroundingCellsAfterSunk } from './alter-surrounding-cells-after-sunk';
 
-export function applyAiShot(board: Board, ships: IShip[], shot: Coordinates) {
+export function applyMove(board: Board, ships: IShip[], shot: Coordinates) {
   const newBoard = getShallowBoard(board);
-  let newShips = ships.map(ship => ({ ...ship }));
+  let newShips = getShallowShips(ships);
+
   const targetCell = newBoard[shot.y][shot.x];
 
   if (targetCell.state === CellState.EMPTY) {

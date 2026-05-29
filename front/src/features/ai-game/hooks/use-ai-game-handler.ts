@@ -1,47 +1,36 @@
 import { useCallback } from 'react';
-import { alterSurroundingCellsAfterSunk, isShipSunkAfterTurn, CellState, getShallowBoard, type ICell } from '@/shared';
+import { CellState, type ICell } from '@/shared';
 import { useAiGameStore } from '../store';
 import { CurrentTurn } from '../lib';
-import { sendUsersTurns } from '../lib/send-users-turns';
+import { triggerAiTurns } from '../lib/trigger-ai-turns';
+import { sendUserTurn } from '../lib/send-user-turn';
 
 export function useAiGameHandler() {
-  const { aiBoard, aiShips, currentTurn, setCurrentTurn, setAiBoard, setAiShips } = useAiGameStore();
+  const { currentTurn } = useAiGameStore();
 
   const handleUserClick = useCallback(
-    (cell: ICell) => {
+    async (cell: ICell) => {
       if (currentTurn !== CurrentTurn.USER) return;
 
-      const { state, x, y, shipId } = cell;
+      const { state, x, y } = cell;
 
       if (state === CellState.HIT || state === CellState.MISS) return;
 
-      const newBoard = getShallowBoard(aiBoard);
-
       if (state === CellState.EMPTY) {
-        newBoard[y][x] = { ...newBoard[y][x], state: CellState.MISS };
+        const result = await sendUserTurn({ x, y });
 
-        setAiBoard(newBoard);
-        setCurrentTurn(CurrentTurn.AI);
+        if (result !== 'miss') return;
 
-        sendUsersTurns();
+        await triggerAiTurns();
         return;
       }
 
       if (state === CellState.SHIP) {
-        newBoard[y][x] = { ...newBoard[y][x], state: CellState.HIT };
-
-        if (isShipSunkAfterTurn(aiShips, newBoard, shipId!)) {
-          const newShips = aiShips.map(ship => (ship.id === shipId ? { ...ship, isSunk: true } : ship));
-          const newBoardAfterSunk = alterSurroundingCellsAfterSunk(newBoard, newShips, shipId!);
-
-          setAiShips(newShips);
-          setAiBoard(newBoardAfterSunk);
-        } else {
-          setAiBoard(newBoard);
-        }
+        await sendUserTurn({ x, y });
+        return;
       }
     },
-    [currentTurn, aiBoard, aiShips, setAiBoard, setCurrentTurn, setAiShips]
+    [currentTurn]
   );
 
   return handleUserClick;

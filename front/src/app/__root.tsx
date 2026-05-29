@@ -6,11 +6,11 @@ export const Route = createRootRoute({
 });
 
 function RootLayout() {
-  // const isPending = useAuthRefresh();
+  const isPending = useAuthRefresh();
 
-  // if (isPending) {
-  //   return <div>Loading...</div>;
-  // }
+  if (isPending) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>

@@ -3,7 +3,11 @@ import { PrismaService } from 'src/prisma.service';
 import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
 import { SYSTEM_PROMPT } from './prompts/system-prompt';
-import { AiMessage, AiTurnRequest, AiTurnResponse } from 'src/types/interfaces';
+import { AiMessage, AiTurnResponse, Board, Coordinates, IShip } from 'src/types/interfaces';
+import { makeAiMoves } from './utils/make-ai-moves';
+import { getWinner } from 'src/utils/game-logic/get-winner';
+import { applyMove } from 'src/utils/game-logic/apply-move';
+import { getShipsFromBoard } from 'src/utils/game-logic/get-ships-from-board';
 
 const AI_GAME_SESSION_EXPIRATION_TIME = 30 * 60 * 1000;
 
@@ -46,7 +50,7 @@ export class AiGameService {
     return session.id;
   }
 
-  async sendUserTurn(sessionId: number, request: AiTurnRequest): Promise<AiTurnResponse> {
+  async triggerAiTurns(sessionId: number): Promise<{ aiTurnResponse: AiTurnResponse[]; winner: 'user' | 'ai' | null }> {
     const session = await this.prisma.aiGameSession.findUnique({
       where: { id: sessionId },
     });
@@ -56,57 +60,80 @@ export class AiGameService {
     }
 
     const now = new Date();
+
     if (session.expiresAt <= now) {
       throw new BadRequestException('AI game session expired');
     }
 
-    const storedMessages = (session.messages as AiMessage[]) ?? [];
+    const aiTurnResponse = await makeAiMoves(sessionId, this.prisma, this.openai, this.openaiModel);
 
-    const userMessage: AiMessage = {
-      role: 'user',
-      content: JSON.stringify(request),
-    };
-
-    const completion = await this.openai.chat.completions.create({
-      model: this.openaiModel,
-      response_format: { type: 'json_object' },
-      messages: [...storedMessages, userMessage],
-      temperature: 0.2,
+    const boards = await this.prisma.aiGameSession.findUnique({
+      where: { id: sessionId },
+      select: {
+        playerBoard: true,
+        aiBoard: true,
+      },
     });
 
-    const content = completion.choices[0]?.message?.content;
+    const winner = getWinner(boards?.playerBoard as unknown as Board, boards?.aiBoard as unknown as Board);
 
-    if (!content) {
-      throw new BadRequestException('AI returned empty response');
+    if (winner) {
+      await this.prisma.aiGameSession.update({
+        where: { id: sessionId },
+        data: { status: 'FINISHED' },
+      });
     }
 
-    const parsedResponse = JSON.parse(content) as AiTurnResponse;
-
-    if (!parsedResponse || typeof parsedResponse !== 'object') {
-      throw new BadRequestException('AI returned invalid JSON');
-    }
-
-    if (
-      typeof parsedResponse.target.x !== 'number' ||
-      typeof parsedResponse.target.y !== 'number' ||
-      typeof parsedResponse.message !== 'string'
-    ) {
-      throw new BadRequestException('AI returned response with invalid shape');
-    }
-
-    const assistantMessage: AiMessage = {
-      role: 'assistant',
-      content,
+    return {
+      aiTurnResponse,
+      winner,
     };
+  }
+
+  async applyUserTurn(
+    sessionId: number,
+    target: Coordinates
+  ): Promise<{ newBoard: Board; newShips: IShip[]; result: 'hit' | 'miss' | 'sunk'; winner: 'user' | 'ai' | null }> {
+    const session = await this.prisma.aiGameSession.findUnique({
+      where: { id: sessionId },
+      select: {
+        aiBoard: true,
+        playerBoard: true,
+      },
+    });
+
+    if (!session) {
+      throw new NotFoundException('AI game session not found');
+    }
+
+    const { newBoard, newShips, result } = applyMove(
+      session.aiBoard as unknown as Board,
+      getShipsFromBoard(session.aiBoard as unknown as Board),
+      target
+    );
+
+    const winner = getWinner(session.playerBoard as unknown as Board, newBoard);
+
+    if (winner) {
+      await this.prisma.aiGameSession.update({
+        where: { id: sessionId },
+        data: { status: 'FINISHED' },
+      });
+    }
 
     await this.prisma.aiGameSession.update({
       where: { id: sessionId },
       data: {
-        messages: [...storedMessages, userMessage, assistantMessage],
+        aiBoard: newBoard as [],
       },
     });
 
-    return parsedResponse;
+    return {
+      newBoard,
+      newShips,
+      result,
+      winner,
+    };
   }
 
   async deleteAiGameSession(sessionId: number) {

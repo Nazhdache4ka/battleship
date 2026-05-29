@@ -74,6 +74,17 @@ export type AiTurnRequest = {
 export type AiTurnRules = typeof AI_TURN_RULES;
 
 export type AiTurnResponse = {
+  board: Board;
+  ships: IShip[];
+  result: 'hit' | 'miss' | 'sunk';
   target: Coordinates;
   message: string;
 };
+
+export const AiGamePhase = {
+  ONGOING: 'ongoing',
+  FINISHED: 'finished',
+  INITIAL: 'initial',
+} as const;
+
+export type AiGamePhase = (typeof AiGamePhase)[keyof typeof AiGamePhase];

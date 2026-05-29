@@ -1,4 +1,4 @@
-import type { Board, IShip, AiShotHistory } from '@/shared';
+import { type Board, type IShip, type AiShotHistory, AiGamePhase } from '@/shared';
 import { CurrentTurn, generateAiBoardAndFleet } from '../lib';
 import { create } from 'zustand';
 
@@ -17,6 +17,10 @@ interface AiGameStore {
   setSessionId: (sessionId: number | null) => void;
   aiShotsHistory: AiShotHistory[];
   setAiShotsHistory: (aiShotsHistory: AiShotHistory[]) => void;
+  phase: AiGamePhase;
+  setPhase: (phase: AiGamePhase) => void;
+  winner: 'user' | 'ai' | null;
+  setWinner: (winner: 'user' | 'ai' | null) => void;
 }
 
 export const useAiGameStore = create<AiGameStore>(set => ({
@@ -32,4 +36,8 @@ export const useAiGameStore = create<AiGameStore>(set => ({
   setSessionId: (sessionId: number | null) => set({ sessionId }),
   aiShotsHistory: [],
   setAiShotsHistory: (aiShotsHistory: AiShotHistory[]) => set({ aiShotsHistory }),
+  phase: AiGamePhase.INITIAL,
+  setPhase: (phase: AiGamePhase) => set({ phase }),
+  winner: null,
+  setWinner: (winner: 'user' | 'ai' | null) => set({ winner }),
 }));
