@@ -14,11 +14,7 @@ export class AiGameController {
   @ApiCreatedResponse({ description: 'AI game session id', type: Number })
   @Post('start')
   startAiGame(@Body() startAiGameDto: StartAiGameDto) {
-    return this.aiGameService.initializeAiGameSession(
-      startAiGameDto.userId,
-      startAiGameDto.playerBoard,
-      startAiGameDto.aiBoard
-    );
+    return this.aiGameService.initializeAiGameSession(startAiGameDto.userId, startAiGameDto.playerBoard);
   }
 
   @ApiOperation({ summary: 'Send user turn to AI and get AI target' })

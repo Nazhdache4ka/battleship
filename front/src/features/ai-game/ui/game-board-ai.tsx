@@ -10,7 +10,7 @@ import versusIcon from './assets/versus.png';
 export function GameBoardAi() {
   const user = useAuthStore(state => state.user);
   const { board, ships } = useGameStore();
-  const { aiBoard, aiShips, sessionId, setSessionId } = useAiGameStore();
+  const { aiBoard, aiShips, sessionId, setSessionId, setAiBoard } = useAiGameStore();
 
   const handleUserClick = useAiGameHandler();
 
@@ -18,10 +18,11 @@ export function GameBoardAi() {
     if (!user || sessionId) return;
 
     (async () => {
-      const sessionId = await OpenAiSessionService.initializeAiGameSession(user.id, board, aiBoard);
+      const { sessionId, aiBoardEnemy } = await OpenAiSessionService.initializeAiGameSession(user.id, board);
       setSessionId(sessionId);
+      setAiBoard(aiBoardEnemy);
     })();
-  }, [user, board, aiBoard, sessionId, setSessionId]);
+  }, [user, board, sessionId, setSessionId, setAiBoard]);
 
   useEffect(() => {
     if (!sessionId) return;

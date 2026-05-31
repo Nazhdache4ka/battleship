@@ -33,7 +33,15 @@ export interface ICell {
   state: CellState;
 }
 
+export interface ICellEnemy {
+  x: number;
+  y: number;
+  state: CellState;
+}
+
 export type Board = ICell[][];
+
+export type BoardEnemy = ICellEnemy[][];
 
 export type AiShotHistory = {
   x: number;

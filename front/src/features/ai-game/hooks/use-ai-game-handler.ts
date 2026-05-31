@@ -1,9 +1,7 @@
 import { useCallback } from 'react';
 import { CellState, type ICell } from '@/shared';
 import { useAiGameStore } from '../store';
-import { CurrentTurn } from '../lib';
-import { triggerAiTurns } from '../lib/trigger-ai-turns';
-import { sendUserTurn } from '../lib/send-user-turn';
+import { CurrentTurn, triggerAiTurns, sendUserTurn } from '../lib';
 
 export function useAiGameHandler() {
   const { currentTurn } = useAiGameStore();

@@ -1,8 +1,11 @@
-import { axiosConfig, type AiTurnResponse, type Board, type Coordinates, type IShip } from '@/shared';
+import { axiosConfig, type AiTurnResponse, type Board, type BoardEnemy, type Coordinates, type IShip } from '@/shared';
 
 export class OpenAiSessionService {
-  static async initializeAiGameSession(userId: number, playerBoard: Board, aiBoard: Board): Promise<number> {
-    const response = await axiosConfig.post('/ai-game/start', { userId, playerBoard, aiBoard });
+  static async initializeAiGameSession(
+    userId: number,
+    playerBoard: Board
+  ): Promise<{ sessionId: number; aiBoardEnemy: BoardEnemy }> {
+    const response = await axiosConfig.post('/ai-game/start', { userId, playerBoard });
     return response.data;
   }
 

@@ -3,11 +3,14 @@ import { PrismaService } from 'src/prisma.service';
 import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
 import { SYSTEM_PROMPT } from './prompts/system-prompt';
-import { AiMessage, AiTurnResponse, Board, Coordinates, IShip } from 'src/types/interfaces';
+import { AiMessage, AiTurnResponse, Board, BoardEnemy, Coordinates, IShip } from 'src/types/interfaces';
 import { makeAiMoves } from './utils/make-ai-moves';
 import { getWinner } from 'src/utils/game-logic/get-winner';
 import { applyMove } from 'src/utils/game-logic/apply-move';
 import { getShipsFromBoard } from 'src/utils/game-logic/get-ships-from-board';
+import { createRandomFleetLayout } from 'src/utils/game-logic/create-random-fleet-layout';
+import { getSunkShips } from 'src/utils/game-logic/get-sunk-ships';
+import { convertAiBoardOnInitialization, convertAiBoardOnTurn } from './utils/convert-ai-board';
 
 const AI_GAME_SESSION_EXPIRATION_TIME = 30 * 60 * 1000;
 
@@ -27,7 +30,10 @@ export class AiGameService {
     this.openaiModel = this.configService.getOrThrow<string>('OPENAI_MODEL');
   }
 
-  async initializeAiGameSession(userId: number, playerBoard: [], aiBoard: []) {
+  async initializeAiGameSession(
+    userId: number,
+    playerBoard: []
+  ): Promise<{ sessionId: number; aiBoardEnemy: BoardEnemy }> {
     const expiresAt = new Date(Date.now() + AI_GAME_SESSION_EXPIRATION_TIME);
 
     const messages: AiMessage[] = [
@@ -37,17 +43,21 @@ export class AiGameService {
       },
     ];
 
+    const { board: aiBoard } = createRandomFleetLayout();
+
+    const aiBoardEnemy = convertAiBoardOnInitialization(aiBoard);
+
     const session = await this.prisma.aiGameSession.create({
       data: {
         userId,
         playerBoard,
-        aiBoard,
+        aiBoard: aiBoard as unknown as [],
         messages,
         expiresAt,
       },
     });
 
-    return session.id;
+    return { sessionId: session.id, aiBoardEnemy };
   }
 
   async triggerAiTurns(sessionId: number): Promise<{ aiTurnResponse: AiTurnResponse[]; winner: 'user' | 'ai' | null }> {
@@ -93,7 +103,12 @@ export class AiGameService {
   async applyUserTurn(
     sessionId: number,
     target: Coordinates
-  ): Promise<{ newBoard: Board; newShips: IShip[]; result: 'hit' | 'miss' | 'sunk'; winner: 'user' | 'ai' | null }> {
+  ): Promise<{
+    newBoard: BoardEnemy;
+    newShips: IShip[];
+    result: 'hit' | 'miss' | 'sunk';
+    winner: 'user' | 'ai' | null;
+  }> {
     const session = await this.prisma.aiGameSession.findUnique({
       where: { id: sessionId },
       select: {
@@ -112,6 +127,10 @@ export class AiGameService {
       target
     );
 
+    const aiBoardEnemy = convertAiBoardOnTurn(newBoard);
+
+    const aiShipsHidden = getSunkShips(newShips, newBoard);
+
     const winner = getWinner(session.playerBoard as unknown as Board, newBoard);
 
     if (winner) {
@@ -129,8 +148,8 @@ export class AiGameService {
     });
 
     return {
-      newBoard,
-      newShips,
+      newBoard: aiBoardEnemy,
+      newShips: aiShipsHidden,
       result,
       winner,
     };

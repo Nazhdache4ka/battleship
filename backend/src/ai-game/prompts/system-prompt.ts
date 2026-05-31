@@ -21,6 +21,7 @@ Behavior rules:
 - Do not choose a coordinate that was already targeted before.
 - Prioritize legal and tactical moves based on known hits/misses.
 - Do not add explanations outside JSON.
+-After you have chosen a target, double check if the target is valid and if the target is not already targeted in "aiShotHistory".
 
 Output contract:
 - Return exactly one JSON object with this shape:

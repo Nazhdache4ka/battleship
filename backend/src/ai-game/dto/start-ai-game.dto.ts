@@ -14,12 +14,4 @@ export class StartAiGameDto {
   })
   @IsArray()
   playerBoard: [];
-
-  @ApiProperty({
-    description: 'AI board snapshot',
-    type: 'array',
-    example: [[{ x: 0, y: 0, shipId: null, state: 'empty' }]],
-  })
-  @IsArray()
-  aiBoard: [];
 }

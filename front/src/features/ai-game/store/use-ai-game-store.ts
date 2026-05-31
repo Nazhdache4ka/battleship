@@ -1,14 +1,12 @@
-import { type Board, type IShip, type AiShotHistory, AiGamePhase } from '@/shared';
-import { CurrentTurn, generateAiBoardAndFleet } from '../lib';
+import { type IShip, type AiShotHistory, AiGamePhase, type BoardEnemy } from '@/shared';
+import { CurrentTurn } from '../lib';
 import { create } from 'zustand';
-
-const { board, ships } = generateAiBoardAndFleet();
 
 interface AiGameStore {
   currentTurn: CurrentTurn;
   setCurrentTurn: (currentTurn: CurrentTurn) => void;
-  aiBoard: Board;
-  setAiBoard: (aiBoard: Board) => void;
+  aiBoard: BoardEnemy;
+  setAiBoard: (aiBoard: BoardEnemy) => void;
   aiShips: IShip[];
   setAiShips: (aiShips: IShip[]) => void;
   aiMessage: string;
@@ -26,9 +24,9 @@ interface AiGameStore {
 export const useAiGameStore = create<AiGameStore>(set => ({
   currentTurn: CurrentTurn.USER,
   setCurrentTurn: (currentTurn: CurrentTurn) => set({ currentTurn }),
-  aiBoard: board,
-  setAiBoard: (aiBoard: Board) => set({ aiBoard }),
-  aiShips: ships,
+  aiBoard: [],
+  setAiBoard: (aiBoard: BoardEnemy) => set({ aiBoard }),
+  aiShips: [],
   setAiShips: (aiShips: IShip[]) => set({ aiShips }),
   aiMessage: '',
   setAiMessage: (aiMessage: string) => set({ aiMessage }),
