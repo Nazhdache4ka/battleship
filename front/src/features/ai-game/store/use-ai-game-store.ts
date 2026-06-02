@@ -1,6 +1,8 @@
-import { type IShip, type AiShotHistory, AiGamePhase, type BoardEnemy } from '@/shared';
+import { type IShip, type AiShotHistory, AiGamePhase, type BoardEnemy, createEmptyBoard } from '@/shared';
 import { CurrentTurn } from '../lib';
 import { create } from 'zustand';
+
+const initialAiBoard = createEmptyBoard();
 
 interface AiGameStore {
   currentTurn: CurrentTurn;
@@ -24,7 +26,7 @@ interface AiGameStore {
 export const useAiGameStore = create<AiGameStore>(set => ({
   currentTurn: CurrentTurn.USER,
   setCurrentTurn: (currentTurn: CurrentTurn) => set({ currentTurn }),
-  aiBoard: [],
+  aiBoard: initialAiBoard,
   setAiBoard: (aiBoard: BoardEnemy) => set({ aiBoard }),
   aiShips: [],
   setAiShips: (aiShips: IShip[]) => set({ aiShips }),

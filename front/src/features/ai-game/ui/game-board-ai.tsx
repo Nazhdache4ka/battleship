@@ -1,44 +1,19 @@
-import { useEffect } from 'react';
 import { Board } from '@/entities';
-import { useAuthStore, useGameStore } from '@/shared';
+import { AiGamePhase, useGameStore } from '@/shared';
 import { useAiGameStore } from '../store';
-import { useAiGameHandler } from '../hooks';
-import { Box } from '@mui/material';
-import { OpenAiSessionService } from '../api/open-ai-session-service';
+import { useAiGameButtonHandlers, useAiGameEffects, useAiGameHandler } from '../hooks';
+import { Box, Button, Typography } from '@mui/material';
 import versusIcon from './assets/versus.png';
 
 export function GameBoardAi() {
-  const user = useAuthStore(state => state.user);
   const { board, ships } = useGameStore();
-  const { aiBoard, aiShips, sessionId, setSessionId, setAiBoard } = useAiGameStore();
+  const { aiBoard, aiShips, phase } = useAiGameStore();
 
   const handleUserClick = useAiGameHandler();
 
-  useEffect(() => {
-    if (!user || sessionId) return;
+  const { handleStartGame, handleResignGame } = useAiGameButtonHandlers();
 
-    (async () => {
-      const { sessionId, aiBoardEnemy } = await OpenAiSessionService.initializeAiGameSession(user.id, board);
-      setSessionId(sessionId);
-      setAiBoard(aiBoardEnemy);
-    })();
-  }, [user, board, sessionId, setSessionId, setAiBoard]);
-
-  useEffect(() => {
-    if (!sessionId) return;
-
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = '';
-      return '';
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      OpenAiSessionService.deleteAiGameSession(sessionId);
-      setSessionId(null);
-    };
-  }, [sessionId, setSessionId]);
+  useAiGameEffects();
 
   return (
     <Box
@@ -46,7 +21,7 @@ export function GameBoardAi() {
         mt: { xs: 3, md: 4 },
         display: 'flex',
         flexDirection: { xs: 'column', md: 'row' },
-        gap: 2,
+        gap: { xs: 2, md: 4 },
         alignItems: 'center',
         justifyContent: 'center',
       }}
@@ -58,18 +33,43 @@ export function GameBoardAi() {
       />
       <Box
         sx={{
-          maxWidth: 100,
-          maxHeight: 100,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          alignItems: 'center',
         }}
       >
-        <img
-          src={versusIcon}
-          alt="Versus"
-          style={{
-            width: '100%',
-            height: '100%',
+        <Button
+          variant="contained"
+          size="large"
+          onClick={handleStartGame}
+          disabled={phase === AiGamePhase.ONGOING}
+        >
+          <Typography variant="body2">Start Game</Typography>
+        </Button>
+        <Box
+          sx={{
+            maxWidth: 100,
+            maxHeight: 100,
           }}
-        />
+        >
+          <img
+            src={versusIcon}
+            alt="Versus"
+            style={{
+              width: '100%',
+              height: '100%',
+            }}
+          />
+        </Box>
+        <Button
+          variant="contained"
+          size="large"
+          onClick={handleResignGame}
+        >
+          <Typography variant="body2">Resign</Typography>
+        </Button>
       </Box>
       <Board
         board={aiBoard}
