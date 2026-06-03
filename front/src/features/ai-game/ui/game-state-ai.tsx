@@ -1,17 +1,25 @@
 import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded';
 import { alpha, Box, Chip, Paper, Typography } from '@mui/material';
 import { useAiGameStore } from '../store';
-import { CurrentTurn } from '../lib/model';
+import { CurrentTurn } from '../lib';
 import { IdeaLottie } from './idea-lottie';
+import { AiGamePhase } from '@/shared';
 
 export function GameStateAi() {
-  const { winner, currentTurn, sessionId } = useAiGameStore();
+  const { winner, currentTurn, sessionId, phase } = useAiGameStore();
 
   const isGameReady = sessionId !== null;
   const isAiTurn = currentTurn === CurrentTurn.AI;
   const isGameFinished = winner !== null;
 
-  const turnChipLabel = isGameFinished ? 'Game Over' : isAiTurn ? "AI's Turn" : 'Your Turn';
+  const turnChipLabel =
+    phase === AiGamePhase.INITIAL
+      ? 'Start the game'
+      : isGameFinished
+        ? 'Game Over'
+        : isAiTurn
+          ? "AI's Turn"
+          : 'Your Turn';
   const turnChipColor = isGameFinished ? 'warning' : isAiTurn ? 'secondary' : 'primary';
 
   return (
@@ -73,7 +81,15 @@ export function GameStateAi() {
         </Box>
 
         <Chip
-          label={isAiTurn && !isGameFinished ? 'AI is planning...' : 'Ready for next move'}
+          label={
+            phase === AiGamePhase.INITIAL
+              ? "We're waiting for you🚀"
+              : phase === AiGamePhase.FINISHED
+                ? "Let's play again🔄"
+                : isAiTurn && !isGameFinished
+                  ? 'AI is planning...'
+                  : 'Ready for next move'
+          }
           variant="outlined"
           color={isAiTurn ? 'secondary' : 'primary'}
           sx={{ mb: 1, fontWeight: 600 }}
