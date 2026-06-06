@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { GameModesPage, ShipPlacement } from '@/widgets';
 import { Container } from '@mui/material';
 
-export const Route = createFileRoute('/_main/(game)/game-mode')({
+export const Route = createFileRoute('/_main/(game)/game-modes')({
   component: RouteComponent,
 });
 

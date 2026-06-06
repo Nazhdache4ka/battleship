@@ -51,11 +51,11 @@ export type AiShotHistory = {
 
 export type BoardRequest = {
   playerBoardForAi: ('unknown' | 'hit' | 'miss')[][];
-  aiShotHistory: AiShotHistory[];
 };
 
 export interface AiTurnRequest {
   board: BoardRequest;
+  aiShotHistory: AiShotHistory[];
   rules: typeof AI_TURN_RULES;
 }
 

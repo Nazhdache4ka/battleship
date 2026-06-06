@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useAiGameStore } from '../store';
-import { OpenAiSessionService } from '../api';
+import { AiGameService } from '../api';
 import { AiGamePhase, createEmptyBoard, resetBoardAndShips, useAuthStore, useGameStore } from '@/shared';
 import { CurrentTurn } from '../lib';
 
@@ -27,7 +27,7 @@ export function useAiGameButtonHandlers() {
 
     const { newBoard, newShips } = resetBoardAndShips(board, ships);
 
-    const { sessionId, aiBoardEnemy } = await OpenAiSessionService.initializeAiGameSession(user.id, newBoard);
+    const { sessionId, aiBoardEnemy } = await AiGameService.initializeAiGameSession(newBoard);
     setBoard(newBoard);
     setShips(newShips);
     setCurrentTurn(CurrentTurn.USER);
@@ -56,7 +56,7 @@ export function useAiGameButtonHandlers() {
   const handleResignGame = useCallback(async () => {
     if (phase !== AiGamePhase.ONGOING) return;
 
-    await OpenAiSessionService.deleteAiGameSession(sessionId);
+    await AiGameService.deleteAiGameSession(sessionId);
     setSessionId(null);
     setAiBoard(createEmptyBoard());
     setAiShips([]);

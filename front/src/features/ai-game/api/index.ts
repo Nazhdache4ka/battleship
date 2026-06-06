@@ -1,1 +1,1 @@
-export * from './open-ai-session-service';
+export * from './ai-game-service';

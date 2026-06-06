@@ -13,7 +13,7 @@ export function validateAiTurn(board: Board, target: Coordinates): boolean {
     return false;
   }
 
-  const cell = board[target.y]?.[target.x];
+  const cell = board.at(target.y)?.at(target.x);
 
   if (!cell) {
     return false;

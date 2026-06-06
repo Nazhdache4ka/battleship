@@ -1,11 +1,12 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import OpenAI from 'openai';
-import { PrismaService } from 'src/prisma.service';
-import { AiMessage, AiTurnResponse, Board, Coordinates } from 'src/types/interfaces';
-import { getBoardForAiRequest } from './get-ai-board-request';
+import { AiMessage, AiShotHistory, AiTurnResponse, Board, Coordinates } from 'src/types/interfaces';
+import { createAiRequest } from './create-ai-request';
 import { applyMove } from 'src/utils/game-logic/apply-move';
 import { getShipsFromBoard } from 'src/utils/game-logic/get-ships-from-board';
 import { validateAiTurn } from './validate-ai-turn';
+import { SessionService } from 'src/session/session.service';
+import { SYSTEM_PROMPT } from '../prompts/system-prompt';
 
 const MAX_AI_CHAIN_MOVES = 100;
 const MAX_RETRIES_PER_MOVE = 15;
@@ -34,12 +35,12 @@ function parseAiShotResponse(content: string): AiShotPick | null {
   }
 }
 
-function createRetryHintMessage(reason: string, target?: Coordinates): AiMessage {
+function createRetryHintMessage(reason: string, target: Coordinates = { x: 0, y: 0 }): AiMessage {
   return {
     role: 'user',
     content: JSON.stringify({
       type: 'invalid_target',
-      ...(target ? { target } : {}),
+      target,
       reason,
     }),
   };
@@ -49,15 +50,15 @@ async function requestValidAiShot(
   openai: OpenAI,
   openaiModel: string,
   board: Board,
-  baseMessages: AiMessage[]
-): Promise<{ shot: AiShotPick; assistantContent: string; userMessage: AiMessage }> {
-  const aiTurnRequest = getBoardForAiRequest(board);
+  aiShotsHistory: AiShotHistory[]
+): Promise<AiShotPick> {
+  const aiTurnRequest = createAiRequest(board, aiShotsHistory);
   const userMessage: AiMessage = {
     role: 'user',
     content: JSON.stringify(aiTurnRequest),
   };
 
-  let messagesForAttempt: AiMessage[] = [...baseMessages, userMessage];
+  const messagesForAttempt: AiMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }, userMessage];
 
   for (let attempt = 0; attempt < MAX_RETRIES_PER_MOVE; attempt++) {
     const completion = await openai.chat.completions.create({
@@ -70,31 +71,26 @@ async function requestValidAiShot(
     const content = completion.choices[0]?.message?.content;
 
     if (!content) {
-      messagesForAttempt = [...messagesForAttempt, createRetryHintMessage('empty_response')];
+      messagesForAttempt.push(createRetryHintMessage('empty_response'));
       continue;
     }
 
     const candidate = parseAiShotResponse(content);
 
     if (!candidate) {
-      messagesForAttempt = [
-        ...messagesForAttempt,
-        { role: 'assistant', content },
-        createRetryHintMessage('invalid_json_or_shape'),
-      ];
+      messagesForAttempt.push({ role: 'assistant', content }, createRetryHintMessage('invalid_json_or_shape'));
       continue;
     }
 
     if (!validateAiTurn(board, candidate.target)) {
-      messagesForAttempt = [
-        ...messagesForAttempt,
+      messagesForAttempt.push(
         { role: 'assistant', content },
-        createRetryHintMessage('already_targeted_or_out_of_bounds', candidate.target),
-      ];
+        createRetryHintMessage('already_targeted_or_out_of_bounds', candidate.target)
+      );
       continue;
     }
 
-    return { shot: candidate, assistantContent: content, userMessage };
+    return candidate;
   }
 
   throw new BadRequestException('AI could not pick a valid target after retries');
@@ -102,37 +98,29 @@ async function requestValidAiShot(
 
 export async function makeAiMoves(
   sessionId: number,
-  prisma: PrismaService,
+  userId: number,
+  sessionService: SessionService,
   openai: OpenAI,
   openaiModel: string
 ): Promise<AiTurnResponse[]> {
-  const session = await prisma.aiGameSession.findUnique({
-    where: { id: sessionId },
-    select: {
-      playerBoard: true,
-      messages: true,
-      updatedAt: true,
-    },
-  });
-
-  if (!session) {
-    throw new NotFoundException('AI game session not found');
-  }
+  const session = await sessionService.getAiGameSession(sessionId, userId);
 
   try {
     let currentBoard = session.playerBoard as unknown as Board;
-    let currentMessages = (session.messages as AiMessage[]) ?? [];
     const aiMoves: AiTurnResponse[] = [];
+    const aiShotsHistory = session.aiShotsHistory as unknown as AiShotHistory[];
 
     for (let moveIndex = 0; moveIndex < MAX_AI_CHAIN_MOVES; moveIndex++) {
-      const { shot, assistantContent, userMessage } = await requestValidAiShot(
+      const shot = await requestValidAiShot(
         openai,
         openaiModel,
         currentBoard,
-        currentMessages
+        aiShotsHistory
       );
 
       const { newBoard, newShips, result } = applyMove(currentBoard, getShipsFromBoard(currentBoard), shot.target);
+
+      aiShotsHistory.push({ x: shot.target.x, y: shot.target.y, result });
 
       aiMoves.push({
         board: newBoard,
@@ -143,7 +131,6 @@ export async function makeAiMoves(
       });
 
       currentBoard = newBoard;
-      currentMessages = [...currentMessages, userMessage, { role: 'assistant', content: assistantContent }];
 
       if (result === 'miss') {
         break;
@@ -154,20 +141,10 @@ export async function makeAiMoves(
       throw new BadRequestException('AI move chain exceeded safe limit');
     }
 
-    const updateResult = await prisma.aiGameSession.updateMany({
-      where: {
-        id: sessionId,
-        updatedAt: session.updatedAt,
-      },
-      data: {
-        messages: currentMessages,
-        playerBoard: currentBoard as [],
-      },
+    await sessionService.updateAiGameSessionOptimistic(sessionId, userId, session.updatedAt, {
+      playerBoard: currentBoard as [],
+      aiShotsHistory: aiShotsHistory as [],
     });
-
-    if (updateResult.count !== 1) {
-      throw new ConflictException('AI game session was updated concurrently, please retry turn');
-    }
 
     return aiMoves;
   } catch {

@@ -1,6 +1,6 @@
 import { AiGamePhase, useGameStore } from '@/shared';
 import { useAiGameStore } from '../store';
-import { OpenAiSessionService } from '../api';
+import { AiGameService } from '../api';
 import { CurrentTurn } from './model';
 
 const AI_MOVE_DELAY_MS = 1000;
@@ -14,7 +14,7 @@ export async function triggerAiTurns() {
   if (sessionId === null) return;
 
   try {
-    const { aiTurnResponse, winner } = await OpenAiSessionService.triggerAiTurns(sessionId);
+    const { aiTurnResponse, winner } = await AiGameService.triggerAiTurns(sessionId);
 
     if (!aiTurnResponse) {
       setCurrentTurn(CurrentTurn.USER);
@@ -39,14 +39,15 @@ export async function triggerAiTurns() {
       return;
     }
 
-    console.log('ai moves were set');
-
     const lastMove = aiTurnResponse[aiTurnResponse.length - 1];
 
-    if (lastMove && lastMove.result === 'miss') {
-      setCurrentTurn(CurrentTurn.USER);
+    if (!lastMove || lastMove.result !== 'miss') {
+      throw new Error('Last move is not a miss');
     }
-  } catch {
+
+    setCurrentTurn(CurrentTurn.USER);
+  } catch (e) {
+    console.error(e);
     setCurrentTurn(CurrentTurn.USER);
   }
 }

@@ -2,7 +2,6 @@ import { Box } from '@mui/material';
 import { Cell } from '@/entities/cell';
 import { Ship } from '@/entities/ship';
 import {
-  BOARD_CELL_PX,
   BOARD_MAX_WIDTH_PX,
   COLUMN_NUMBER,
   ROW_NUMBER,
@@ -12,8 +11,8 @@ import {
   type ICellEnemy,
   type IShip,
 } from '@/shared';
-import { inferHorizontalFromOccupiedCells } from '../lib';
 import boardTileUrl from '../../../../assets/kenney_pirate-pack/PNG/Default size/Tiles/tile_73.png';
+import { getShipWrapperStyle } from '../lib/get-ship-wrapper-style';
 
 interface BoardProps {
   board: Board | BoardEnemy;
@@ -72,23 +71,13 @@ export function Board({ board, ships, variant, onClick }: BoardProps) {
           ? ships.map(ship => {
               const origin = ship.occupiedCells[0];
               if (!origin) return null;
-              const horizontal = inferHorizontalFromOccupiedCells(ship.occupiedCells) ?? true;
+              const style = getShipWrapperStyle(ship);
               return (
                 <Box
                   key={ship.id}
                   sx={{
-                    position: 'absolute',
-                    left: `${(origin.x / COLUMN_NUMBER) * 100}%`,
-                    top: `${(origin.y / ROW_NUMBER) * 100}%`,
-                    width: `${((horizontal ? ship.size : 1) / COLUMN_NUMBER) * 100}%`,
-                    height: `${((horizontal ? 1 : ship.size) / ROW_NUMBER) * 100}%`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    pointerEvents: 'auto',
-                    boxSizing: 'border-box',
-                    minHeight: BOARD_CELL_PX,
-                    minWidth: BOARD_CELL_PX,
+                    ...style,
+                    pointerEvents: variant === 'setting' ? 'auto' : 'none',
                   }}
                 >
                   <Ship
@@ -102,23 +91,13 @@ export function Board({ board, ships, variant, onClick }: BoardProps) {
               const origin = ship.occupiedCells[0];
               const isSunk = ship.isSunk;
               if (!origin || !isSunk) return null;
-              const horizontal = inferHorizontalFromOccupiedCells(ship.occupiedCells) ?? true;
+              const style = getShipWrapperStyle(ship);
               return (
                 <Box
                   key={ship.id}
                   sx={{
-                    position: 'absolute',
-                    left: `${(origin.x / COLUMN_NUMBER) * 100}%`,
-                    top: `${(origin.y / ROW_NUMBER) * 100}%`,
-                    width: `${((horizontal ? ship.size : 1) / COLUMN_NUMBER) * 100}%`,
-                    height: `${((horizontal ? 1 : ship.size) / ROW_NUMBER) * 100}%`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    ...style,
                     pointerEvents: 'none',
-                    boxSizing: 'border-box',
-                    minHeight: BOARD_CELL_PX,
-                    minWidth: BOARD_CELL_PX,
                   }}
                 >
                   <Ship

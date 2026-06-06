@@ -1,12 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsInt, Min } from 'class-validator';
+import { IsArray } from 'class-validator';
 
 export class StartAiGameDto {
-  @ApiProperty({ example: 1 })
-  @IsInt()
-  @Min(1)
-  userId: number;
-
   @ApiProperty({
     description: 'Player board snapshot',
     type: 'array',

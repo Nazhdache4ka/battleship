@@ -67,6 +67,7 @@ export function GameBoardAi() {
           variant="contained"
           size="large"
           onClick={handleResignGame}
+          disabled={phase !== AiGamePhase.ONGOING}
         >
           <Typography variant="body2">Resign</Typography>
         </Button>

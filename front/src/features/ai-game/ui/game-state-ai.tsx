@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded';
 import { alpha, Box, Chip, Paper, Typography } from '@mui/material';
 import { useAiGameStore } from '../store';
@@ -8,19 +9,22 @@ import { AiGamePhase } from '@/shared';
 export function GameStateAi() {
   const { winner, currentTurn, sessionId, phase } = useAiGameStore();
 
-  const isGameReady = sessionId !== null;
-  const isAiTurn = currentTurn === CurrentTurn.AI;
-  const isGameFinished = winner !== null;
+  const isGameReady = useMemo(() => sessionId !== null, [sessionId]);
+  const isAiTurn = useMemo(() => currentTurn === CurrentTurn.AI, [currentTurn]);
+  const isGameFinished = useMemo(() => winner !== null, [winner]);
 
-  const turnChipLabel =
-    phase === AiGamePhase.INITIAL
-      ? 'Start the game'
-      : isGameFinished
-        ? 'Game Over'
-        : isAiTurn
-          ? "AI's Turn"
-          : 'Your Turn';
-  const turnChipColor = isGameFinished ? 'warning' : isAiTurn ? 'secondary' : 'primary';
+  const turnChipLabel = useMemo(() => {
+    if (phase === AiGamePhase.INITIAL) return 'Start the game';
+    if (isGameFinished) return 'Game Over';
+    if (isAiTurn) return "AI's Turn";
+    return 'Your Turn';
+  }, [phase, isGameFinished, isAiTurn]);
+
+  const turnChipColor = useMemo(() => {
+    if (isGameFinished) return 'warning';
+    if (isAiTurn) return 'secondary';
+    return 'primary';
+  }, [isGameFinished, isAiTurn]);
 
   return (
     <Box
@@ -55,14 +59,14 @@ export function GameStateAi() {
             mb: 1.5,
           }}
         >
-          {isGameReady ? (
+          {isGameReady && (
             <Typography
               variant="body2"
               sx={{ opacity: 0.8 }}
             >
               Session #{sessionId}
             </Typography>
-          ) : null}
+          )}
           <Chip
             color={turnChipColor}
             icon={

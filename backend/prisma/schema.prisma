@@ -46,6 +46,7 @@ model AiGameSession {
   userId Int
   playerBoard Json
   aiBoard Json
+  aiShotsHistory Json @default("[]")
   currentTurn AiGameTurn @default(USER)
   status AiGameSessionStatus @default(ACTIVE)
   messages Json @default("[]")

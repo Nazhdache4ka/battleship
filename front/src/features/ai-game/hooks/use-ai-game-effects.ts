@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useAiGameStore } from '../store';
-import { OpenAiSessionService } from '../api';
+import { AiGameService } from '../api';
 
 export function useAiGameEffects() {
   const { sessionId, setSessionId } = useAiGameStore();
@@ -16,7 +16,7 @@ export function useAiGameEffects() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      OpenAiSessionService.deleteAiGameSession(sessionId);
+      AiGameService.deleteAiGameSession(sessionId);
       setSessionId(null);
     };
   }, [sessionId, setSessionId]);

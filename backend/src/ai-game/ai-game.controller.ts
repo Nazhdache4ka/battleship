@@ -24,23 +24,27 @@ export class AiGameController {
   @ApiOkResponse({ description: 'AI turn response', type: AiTurnResponseDto })
   @Post('turn/:sessionId')
   @UseGuards(AuthGuard)
-  triggerAiTurns(@Param('sessionId', ParseIntPipe) sessionId: number) {
-    return this.aiGameService.triggerAiTurns(sessionId);
+  triggerAiTurns(@Param('sessionId', ParseIntPipe) sessionId: number, @Req() request: Request) {
+    return this.aiGameService.triggerAiTurns(sessionId, request.user!.id);
   }
 
   @ApiOperation({ summary: 'Apply user turn to AI and get AI response' })
   @ApiOkResponse({ description: 'AI turn response', type: AiTurnResponseDto })
   @Post('apply-turn/:sessionId')
   @UseGuards(AuthGuard)
-  applyUserTurn(@Param('sessionId', ParseIntPipe) sessionId: number, @Body() target: { target: Coordinates }) {
-    return this.aiGameService.applyUserTurn(sessionId, target.target);
+  applyUserTurn(
+    @Param('sessionId', ParseIntPipe) sessionId: number,
+    @Body() target: { target: Coordinates },
+    @Req() request: Request
+  ) {
+    return this.aiGameService.applyUserTurn(sessionId, request.user!.id, target.target);
   }
 
   @ApiOperation({ summary: 'Delete AI game session' })
   @ApiOkResponse({ description: 'AI game session deleted', type: Boolean })
   @Delete('session/:sessionId')
   @UseGuards(AuthGuard)
-  deleteAiGameSession(@Param('sessionId', ParseIntPipe) sessionId: number) {
-    return this.aiGameService.deleteAiGameSession(sessionId);
+  deleteAiGameSession(@Param('sessionId', ParseIntPipe) sessionId: number, @Req() request: Request) {
+    return this.aiGameService.deleteAiGameSession(sessionId, request.user!.id);
   }
 }

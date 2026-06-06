@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CellState } from 'src/types/interfaces';
 
-class AiTargetDto {
+class TargetDto {
   @ApiProperty({ example: 3 })
   x: number;
 
@@ -46,8 +46,8 @@ export class AiTurnResponseDto {
   @ApiProperty({ example: 'hit' })
   result: 'hit' | 'miss' | 'sunk';
 
-  @ApiProperty({ type: AiTargetDto })
-  target?: AiTargetDto;
+  @ApiProperty({ type: TargetDto })
+  target?: TargetDto;
 
   @ApiProperty({ example: 'I am targeting your lower-left quadrant.' })
   message: string;

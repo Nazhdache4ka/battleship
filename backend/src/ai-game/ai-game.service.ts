@@ -1,9 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
-import { SYSTEM_PROMPT } from './prompts/system-prompt';
-import { AiMessage, AiTurnResponse, Board, BoardEnemy, Coordinates, IShip } from 'src/types/interfaces';
+import { AiTurnResponse, Board, BoardEnemy, Coordinates, IShip } from 'src/types/interfaces';
 import { makeAiMoves } from './utils/make-ai-moves';
 import { getWinner } from 'src/utils/game-logic/get-winner';
 import { applyMove } from 'src/utils/game-logic/apply-move';
@@ -11,6 +10,7 @@ import { getShipsFromBoard } from 'src/utils/game-logic/get-ships-from-board';
 import { createRandomFleetLayout } from 'src/utils/game-logic/create-random-fleet-layout';
 import { getSunkShips } from 'src/utils/game-logic/get-sunk-ships';
 import { convertAiBoardOnInitialization, convertAiBoardOnTurn } from './utils/convert-ai-board';
+import { SessionService } from 'src/session/session.service';
 
 const AI_GAME_SESSION_EXPIRATION_TIME = 30 * 60 * 1000;
 
@@ -21,7 +21,8 @@ export class AiGameService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly sessionService: SessionService
   ) {
     this.openai = new OpenAI({
       apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
@@ -36,13 +37,6 @@ export class AiGameService {
   ): Promise<{ sessionId: number; aiBoardEnemy: BoardEnemy }> {
     const expiresAt = new Date(Date.now() + AI_GAME_SESSION_EXPIRATION_TIME);
 
-    const messages: AiMessage[] = [
-      {
-        role: 'system',
-        content: SYSTEM_PROMPT,
-      },
-    ];
-
     const { board: aiBoard } = createRandomFleetLayout();
 
     const aiBoardEnemy = convertAiBoardOnInitialization(aiBoard);
@@ -52,7 +46,6 @@ export class AiGameService {
         userId,
         playerBoard,
         aiBoard: aiBoard as unknown as [],
-        messages,
         expiresAt,
       },
     });
@@ -60,38 +53,18 @@ export class AiGameService {
     return { sessionId: session.id, aiBoardEnemy };
   }
 
-  async triggerAiTurns(sessionId: number): Promise<{ aiTurnResponse: AiTurnResponse[]; winner: 'user' | 'ai' | null }> {
-    const session = await this.prisma.aiGameSession.findUnique({
-      where: { id: sessionId },
-    });
+  async triggerAiTurns(
+    sessionId: number,
+    userId: number
+  ): Promise<{ aiTurnResponse: AiTurnResponse[]; winner: 'user' | 'ai' | null }> {
+    const aiTurnResponse = await makeAiMoves(sessionId, userId, this.sessionService, this.openai, this.openaiModel);
 
-    if (!session) {
-      throw new NotFoundException('AI game session not found');
-    }
+    const boards = await this.sessionService.getAiGameSession(sessionId, userId);
 
-    const now = new Date();
-
-    if (session.expiresAt <= now) {
-      throw new BadRequestException('AI game session expired');
-    }
-
-    const aiTurnResponse = await makeAiMoves(sessionId, this.prisma, this.openai, this.openaiModel);
-
-    const boards = await this.prisma.aiGameSession.findUnique({
-      where: { id: sessionId },
-      select: {
-        playerBoard: true,
-        aiBoard: true,
-      },
-    });
-
-    const winner = getWinner(boards?.playerBoard as unknown as Board, boards?.aiBoard as unknown as Board);
+    const winner = getWinner(boards.playerBoard as unknown as Board, boards.aiBoard as unknown as Board);
 
     if (winner) {
-      await this.prisma.aiGameSession.update({
-        where: { id: sessionId },
-        data: { status: 'FINISHED' },
-      });
+      await this.sessionService.updateAiGameSession(sessionId, userId, { status: 'FINISHED' });
     }
 
     return {
@@ -102,6 +75,7 @@ export class AiGameService {
 
   async applyUserTurn(
     sessionId: number,
+    userId: number,
     target: Coordinates
   ): Promise<{
     newBoard: BoardEnemy;
@@ -109,17 +83,7 @@ export class AiGameService {
     result: 'hit' | 'miss' | 'sunk';
     winner: 'user' | 'ai' | null;
   }> {
-    const session = await this.prisma.aiGameSession.findUnique({
-      where: { id: sessionId },
-      select: {
-        aiBoard: true,
-        playerBoard: true,
-      },
-    });
-
-    if (!session) {
-      throw new NotFoundException('AI game session not found');
-    }
+    const session = await this.sessionService.getAiGameSession(sessionId, userId);
 
     const { newBoard, newShips, result } = applyMove(
       session.aiBoard as unknown as Board,
@@ -134,18 +98,10 @@ export class AiGameService {
     const winner = getWinner(session.playerBoard as unknown as Board, newBoard);
 
     if (winner) {
-      await this.prisma.aiGameSession.update({
-        where: { id: sessionId },
-        data: { status: 'FINISHED' },
-      });
+      await this.sessionService.updateAiGameSession(sessionId, userId, { status: 'FINISHED' });
     }
 
-    await this.prisma.aiGameSession.update({
-      where: { id: sessionId },
-      data: {
-        aiBoard: newBoard as [],
-      },
-    });
+    await this.sessionService.updateAiGameSession(sessionId, userId, { aiBoard: newBoard as [] });
 
     return {
       newBoard: aiBoardEnemy,
@@ -155,9 +111,7 @@ export class AiGameService {
     };
   }
 
-  async deleteAiGameSession(sessionId: number) {
-    await this.prisma.aiGameSession.delete({
-      where: { id: sessionId },
-    });
+  async deleteAiGameSession(sessionId: number, userId: number) {
+    await this.sessionService.deleteAiGameSession(sessionId, userId);
   }
 }

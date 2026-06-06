@@ -120,7 +120,7 @@ export function Header() {
 }
 
 const navItems = [
-  { label: 'Game Modes', to: '/game-mode' },
+  { label: 'Game Modes', to: '/game-modes' },
   { label: 'Leaderboard', to: '/leaderboard' },
   { label: 'Rules', to: '/rules' },
   { label: 'About', to: '/about' },
