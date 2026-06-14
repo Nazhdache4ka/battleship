@@ -6,6 +6,14 @@ const isAuthUrl = (url = '') => /\/auth\/(login|register|logout|refresh)(\?|$)/.
 
 let refreshPromise: Promise<string> | null = null;
 
+const isAuthPage = () => window.location.pathname === '/login' || window.location.pathname === '/register';
+
+const redirectToLoginIfNeeded = () => {
+  if (!isAuthPage()) {
+    window.location.href = '/login';
+  }
+};
+
 const doRefresh = async (): Promise<string> => {
   if (refreshPromise) return refreshPromise;
 
@@ -46,7 +54,7 @@ export function setupAxiosInterceptors() {
         localStorage.removeItem('accessToken');
         useAuthStore.getState().setIsAuth(false);
         useAuthStore.getState().setUser(null);
-        window.location.href = '/login';
+        redirectToLoginIfNeeded();
         return Promise.reject(error);
       }
 
@@ -63,7 +71,7 @@ export function setupAxiosInterceptors() {
         localStorage.removeItem('accessToken');
         useAuthStore.getState().setIsAuth(false);
         useAuthStore.getState().setUser(null);
-        window.location.href = '/login';
+        redirectToLoginIfNeeded();
         return Promise.reject(error);
       }
     }

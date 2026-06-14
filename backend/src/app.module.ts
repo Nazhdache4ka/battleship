@@ -5,6 +5,7 @@ import { PrismaModule } from './prisma.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { TokenModule } from './token/token.module';
+import { AiGameModule } from './ai-game/ai-game.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { TokenModule } from './token/token.module';
     UsersModule,
     AuthModule,
     TokenModule,
+    AiGameModule,
   ],
   controllers: [],
   providers: [],

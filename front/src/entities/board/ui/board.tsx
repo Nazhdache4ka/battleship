@@ -2,18 +2,28 @@ import { Box } from '@mui/material';
 import { Cell } from '@/entities/cell';
 import { Ship } from '@/entities/ship';
 import {
-  BOARD_CELL_PX,
   BOARD_MAX_WIDTH_PX,
   COLUMN_NUMBER,
   ROW_NUMBER,
   type Board,
+  type BoardEnemy,
   type ICell,
+  type ICellEnemy,
   type IShip,
 } from '@/shared';
-import { inferHorizontalFromOccupiedCells } from '../lib';
 import boardTileUrl from '../../../../assets/kenney_pirate-pack/PNG/Default size/Tiles/tile_73.png';
+import { getShipWrapperStyle } from '../lib/get-ship-wrapper-style';
 
-export function Board({ board, ships }: { board: Board; ships: IShip[] }) {
+interface BoardProps {
+  board: Board | BoardEnemy;
+  ships: IShip[];
+  variant: 'player' | 'enemy' | 'setting';
+  onClick?: (cell: ICell) => void;
+}
+
+export function Board({ board, ships, variant, onClick }: BoardProps) {
+  const isPlayer = variant === 'player' || variant === 'setting';
+
   return (
     <Box
       sx={{
@@ -46,41 +56,57 @@ export function Board({ board, ships }: { board: Board; ships: IShip[] }) {
             backgroundSize: `${100 / COLUMN_NUMBER}% ${100 / ROW_NUMBER}%`,
           }}
         >
-          {board.flatMap((row: ICell[], rowIndex: number) =>
-            row.map((cell: ICell) => (
+          {board.flatMap((row: ICell[] | ICellEnemy[], rowIndex: number) =>
+            row.map((cell: ICell | ICellEnemy) => (
               <Cell
                 key={`${rowIndex}-${cell.x}-${cell.y}`}
                 cell={cell}
+                variant={variant}
+                onClick={onClick}
               />
             ))
           )}
         </Box>
-        {ships.map(ship => {
-          const origin = ship.occupiedCells[0];
-          if (!origin) return null;
-          const horizontal = inferHorizontalFromOccupiedCells(ship.occupiedCells) ?? true;
-          return (
-            <Box
-              key={ship.id}
-              sx={{
-                position: 'absolute',
-                left: `${(origin.x / COLUMN_NUMBER) * 100}%`,
-                top: `${(origin.y / ROW_NUMBER) * 100}%`,
-                width: `${((horizontal ? ship.size : 1) / COLUMN_NUMBER) * 100}%`,
-                height: `${((horizontal ? 1 : ship.size) / ROW_NUMBER) * 100}%`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                pointerEvents: 'auto',
-                boxSizing: 'border-box',
-                minHeight: BOARD_CELL_PX,
-                minWidth: BOARD_CELL_PX,
-              }}
-            >
-              <Ship ship={ship} />
-            </Box>
-          );
-        })}
+        {isPlayer
+          ? ships.map(ship => {
+              const origin = ship.occupiedCells[0];
+              if (!origin) return null;
+              const style = getShipWrapperStyle(ship);
+              return (
+                <Box
+                  key={ship.id}
+                  sx={{
+                    ...style,
+                    pointerEvents: variant === 'setting' ? 'auto' : 'none',
+                  }}
+                >
+                  <Ship
+                    ship={ship}
+                    variant={variant}
+                  />
+                </Box>
+              );
+            })
+          : ships.map(ship => {
+              const origin = ship.occupiedCells[0];
+              const isSunk = ship.isSunk;
+              if (!origin || !isSunk) return null;
+              const style = getShipWrapperStyle(ship);
+              return (
+                <Box
+                  key={ship.id}
+                  sx={{
+                    ...style,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <Ship
+                    ship={ship}
+                    variant={variant}
+                  />
+                </Box>
+              );
+            })}
       </Box>
     </Box>
   );

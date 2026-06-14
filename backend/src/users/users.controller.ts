@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import type { Request } from 'express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -24,5 +25,22 @@ export class UsersController {
   @UseGuards(AuthGuard)
   fetchAllUsers() {
     return this.usersService.fetchAllUsers();
+  }
+
+  @ApiOperation({ summary: 'Get user board preset' })
+  @ApiOkResponse({ description: 'The user board preset has been successfully fetched' })
+  @Get('board-preset')
+  @UseGuards(AuthGuard)
+  getUserBoardPreset(@Req() request: Request) {
+    return this.usersService.getUserBoardPreset(request.user!.id);
+  }
+
+  @ApiOperation({ summary: 'Save user board preset' })
+  @ApiBody({ type: 'array' })
+  @ApiOkResponse({ description: 'The user board preset has been successfully saved', type: Boolean })
+  @Post('board-preset')
+  @UseGuards(AuthGuard)
+  saveUserBoardPreset(@Body() boardPreset: [], @Req() request: Request) {
+    return this.usersService.saveUserBoardPreset(boardPreset, request.user!.id);
   }
 }

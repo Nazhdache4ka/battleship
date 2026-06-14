@@ -1,15 +1,14 @@
-import { BOARD_CELL_PX, DND_SHIP_TYPE, type IShip } from '@/shared';
-import { isHorizontalShip } from '../lib';
+import { BOARD_CELL_PX, DND_SHIP_TYPE, isHorizontalShip, type IShip } from '@/shared';
+import { getShipImage } from '../lib';
 import { Box } from '@mui/material';
 import { useDraggable } from '@dnd-kit/react';
-import shipUrlVertical from '../../../../assets/kenney_pirate-pack/PNG/Default size/Ships/ship4.png';
-import shipUrlHorizontal from '../../../../assets/kenney_pirate-pack/PNG/Default size/Ships/ship4-h.png';
 
 interface ShipProps {
   ship: IShip;
+  variant: 'player' | 'enemy' | 'setting';
 }
 
-export function Ship({ ship }: ShipProps) {
+export function Ship({ ship, variant }: ShipProps) {
   const { ref, handleRef } = useDraggable({
     id: ship.id,
     type: DND_SHIP_TYPE,
@@ -17,11 +16,12 @@ export function Ship({ ship }: ShipProps) {
       type: 'ship',
       ship,
     },
+    disabled: variant !== 'setting',
   });
 
   const isHorizontal = isHorizontalShip(ship);
 
-  const shipUrl = isHorizontal ? shipUrlHorizontal : shipUrlVertical;
+  const shipUrl = getShipImage(ship, isHorizontal);
 
   const width = isHorizontal ? ship.size * BOARD_CELL_PX : BOARD_CELL_PX;
   const height = isHorizontal ? BOARD_CELL_PX : ship.size * BOARD_CELL_PX;

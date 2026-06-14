@@ -1,1 +1,1 @@
-export * from './is-horizontal-ship';
+export * from './get-ship-image';

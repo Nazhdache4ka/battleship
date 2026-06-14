@@ -33,7 +33,6 @@ export class AuthController {
     } = await this.authService.login(userDto, userAgent ?? '', ip);
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: true,
       maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
       path: '/',
     });
@@ -62,7 +61,6 @@ export class AuthController {
     } = await this.authService.register(userDto, userAgent ?? '', ip);
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: true,
       maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
       path: '/',
     });
@@ -83,7 +81,6 @@ export class AuthController {
 
     response.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: true,
       path: '/',
     });
 
@@ -125,7 +122,6 @@ export class AuthController {
 
     response.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      secure: true,
       maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
       path: '/',
     });

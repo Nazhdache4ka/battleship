@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { GameModesPage } from '@/widgets';
+import { SmokeLottie } from './lottie/smoke-lottie';
 import {
   alpha,
   Box,
-  Button,
   Container,
   List,
   ListItem,
@@ -11,16 +11,15 @@ import {
   ListItemText,
   Paper,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import GridOnOutlinedIcon from '@mui/icons-material/GridOnOutlined';
 import AnchorOutlinedIcon from '@mui/icons-material/AnchorOutlined';
 import SportsEsportsOutlinedIcon from '@mui/icons-material/SportsEsports';
-import { ShipPlacement } from '@/widgets';
+import sailorImg from '../../../assets/kenney_pirate-pack/PNG/Default size/891.svg';
 
 export function Home() {
-  const navigate = useNavigate();
-
   return (
     <Box
       component="main"
@@ -32,7 +31,16 @@ export function Home() {
              linear-gradient(180deg, ${alpha(theme.palette.divider, 0.06)} 0%, transparent 28%)`,
       }}
     >
-      <Container maxWidth="xl">
+      <Container
+        maxWidth="xl"
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: { xs: 4, md: 5, lg: 7 },
+        }}
+      >
         <Box
           sx={{
             display: 'flex',
@@ -137,38 +145,54 @@ export function Home() {
                 ))}
               </List>
             </Paper>
-
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={2}
-            >
-              <Button
-                variant="outlined"
-                size="large"
-                sx={{ minWidth: { sm: 200 }, py: 1.25, fontWeight: 600 }}
-              >
-                vs AI
-              </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                sx={{ minWidth: { sm: 200 }, py: 1.25, fontWeight: 600 }}
-                onClick={() => navigate({ to: '/game-mode/single-player' })}
-              >
-                Local two-player
-              </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                sx={{ minWidth: { sm: 200 }, py: 1.25, fontWeight: 600 }}
-              >
-                Online play
-              </Button>
-            </Stack>
           </Stack>
-
-          <ShipPlacement />
         </Box>
+
+        <Box
+          sx={{
+            position: 'relative',
+            width: { xs: '100%', md: '45%' },
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Tooltip title="Want me to go over the rules?">
+            <Box
+              component="img"
+              src={sailorImg}
+              alt="sailor"
+              sx={{
+                width: '100%',
+                maxWidth: { xs: 320, sm: 400, md: 440 },
+                transition: 'transform 0.3s ease-in-out',
+                cursor: 'pointer',
+                height: 'auto',
+                ':hover': {
+                  transform: 'scale(1.02)',
+                },
+              }}
+              // onClick={() => navigate('/rules')}
+            />
+          </Tooltip>
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: '0%',
+              right: { xs: '54%', md: '56.5%' },
+              transform: 'translate(-50%, -100%)',
+              zIndex: 1,
+              pointerEvents: 'none',
+            }}
+          >
+            <SmokeLottie />
+          </Box>
+        </Box>
+      </Container>
+
+      <Container maxWidth="xl">
+        <GameModesPage />
       </Container>
     </Box>
   );

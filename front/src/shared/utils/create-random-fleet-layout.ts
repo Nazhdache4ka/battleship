@@ -1,18 +1,13 @@
-import { CellState, COLUMN_NUMBER, ROW_NUMBER, type Board, type Coordinates, type IShip } from '../model';
+import {
+  CellState,
+  COLUMN_NUMBER,
+  DEFAULT_FLEET_SPEC,
+  ROW_NUMBER,
+  type Board,
+  type Coordinates,
+  type IShip,
+} from '../model';
 import { createEmptyBoard } from './create-empty-board';
-
-export const DEFAULT_FLEET_SPEC = [
-  { id: 'ship-4', size: 4 },
-  { id: 'ship-3a', size: 3 },
-  { id: 'ship-3b', size: 3 },
-  { id: 'ship-2a', size: 2 },
-  { id: 'ship-2b', size: 2 },
-  { id: 'ship-2c', size: 2 },
-  { id: 'ship-1a', size: 1 },
-  { id: 'ship-1b', size: 1 },
-  { id: 'ship-1c', size: 1 },
-  { id: 'ship-1d', size: 1 },
-] as const;
 
 function cellKey(x: number, y: number): string {
   return `${x},${y}`;

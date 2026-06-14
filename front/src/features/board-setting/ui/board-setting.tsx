@@ -9,11 +9,13 @@ import {
   updateShipsOccupiedCells,
 } from '@/entities/board';
 import type { ShipDragData } from '@/shared';
-import { POINTER_DRAG_DISTANCE_PX, useGameStore } from '@/shared';
+import { POINTER_DRAG_DISTANCE_PX, resetBoardAndShips, useGameStore } from '@/shared';
 
 export function BoardSetting() {
   const board = useGameStore(s => s.board);
   const ships = useGameStore(s => s.ships);
+
+  const { newBoard: clearedBoard, newShips: clearedShips } = resetBoardAndShips(board, ships);
 
   const sensors = useMemo(
     () => [
@@ -53,8 +55,9 @@ export function BoardSetting() {
       onDragEnd={onDragEnd}
     >
       <Board
-        board={board}
-        ships={ships}
+        board={clearedBoard}
+        ships={clearedShips}
+        variant="setting"
       />
     </DragDropProvider>
   );
