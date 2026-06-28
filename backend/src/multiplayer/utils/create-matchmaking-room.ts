@@ -38,12 +38,7 @@ export async function createMatchmakingRoom(
       },
     });
 
-    server.to(roomId).emit('game:start', {
-      gameId: updatedSession.id,
-      status: updatedSession.status,
-    });
-
-    return roomId;
+    return { roomId, session: updatedSession };
   } catch (error) {
     await prisma.onlineGameSession.delete({
       where: { id: session.id },

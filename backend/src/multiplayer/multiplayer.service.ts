@@ -33,9 +33,22 @@ export class MultiplayerService {
 
       try {
         const session = await createMatchmakingSession(player1, player2, this.prisma);
-        await createMatchmakingRoom(player1, player2, server, this.prisma, session);
-      } catch {
+
+        const { roomId, session: updatedSession } = await createMatchmakingRoom(
+          player1,
+          player2,
+          server,
+          this.prisma,
+          session
+        );
+
+        server.to(roomId).emit('game:start', {
+          gameId: updatedSession.id,
+          status: updatedSession.status,
+        });
+      } catch (error) {
         this.queuePlayers.push(player1, player2);
+        throw new Error(`Failed to create matchmaking room: ${error}`);
       }
     }
   }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { getMultiplayerSocket } from '../api';
 import { AuthService } from '@/features/auth/api';
 import { useAuthStore } from '@/shared';
+import { hasRetriedAfterRefreshUtil } from '../lib';
 
 let refreshPromise: Promise<string> | null = null;
 
@@ -45,13 +46,13 @@ export function useSocketConnectionHandler() {
         return;
       }
 
-      if (hasRetriedAfterRefresh.current) {
-        localStorage.removeItem('accessToken');
-        useAuthStore.getState().setIsAuth(false);
-        useAuthStore.getState().setUser(null);
-        if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
-          window.location.href = '/login';
-        }
+      if (
+        hasRetriedAfterRefreshUtil(
+          hasRetriedAfterRefresh,
+          useAuthStore.getState().setIsAuth,
+          useAuthStore.getState().setUser
+        )
+      ) {
         return;
       }
 
