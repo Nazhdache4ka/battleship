@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { TokenModule } from './token/token.module';
 import { AiGameModule } from './ai-game/ai-game.module';
+import { MultiplayerModule } from './multiplayer/multiplayer.module';
 
 @Module({
   imports: [
@@ -18,12 +19,14 @@ import { AiGameModule } from './ai-game/ai-game.module';
         DATABASE_URL: Joi.string().uri().required(),
         JWT_ACCESS_SECRET: Joi.string().required(),
         JWT_REFRESH_SECRET: Joi.string().required(),
+        FRONTEND_URL: Joi.string().uri().default('http://localhost:5173'),
       }),
     }),
     UsersModule,
     AuthModule,
     TokenModule,
     AiGameModule,
+    MultiplayerModule,
   ],
   controllers: [],
   providers: [],

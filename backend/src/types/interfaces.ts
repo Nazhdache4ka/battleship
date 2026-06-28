@@ -66,3 +66,9 @@ export type AiTurnResponse = {
   target: Coordinates;
   message: string;
 };
+
+export interface IQueuePlayer {
+  userId: number;
+  socketId: string;
+  board: Board;
+}
