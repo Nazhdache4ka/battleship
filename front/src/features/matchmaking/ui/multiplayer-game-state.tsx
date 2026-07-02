@@ -15,6 +15,12 @@ export function MultiplayerGameState() {
   const isUserTurn = useMemo(() => currentTurnUserId === user?.id, [currentTurnUserId, user]);
   const isGameFinished = useMemo(() => winnerUserId !== null, [winnerUserId]);
 
+  const winner = useMemo(() => {
+    if (winnerUserId === null) return null;
+    if (winnerUserId === user?.id) return user?.name ?? 'You';
+    return opponentName ?? 'Opponent';
+  }, [winnerUserId, user, opponentName]);
+
   return (
     <Box
       sx={{
@@ -76,12 +82,22 @@ export function MultiplayerGameState() {
             />
           </Box>
 
-          <Chip
-            label={isGameFinished ? 'Game Over' : isUserTurn ? 'Your Turn' : "Opponent's Turn"}
-            variant="outlined"
-            color={isGameFinished ? 'warning' : isUserTurn ? 'secondary' : 'primary'}
-            sx={{ mb: 1, fontWeight: 600 }}
-          />
+          {!isGameFinished && (
+            <Chip
+              label={isUserTurn ? 'Your Turn' : "Opponent's Turn"}
+              variant="outlined"
+              color={isUserTurn ? 'secondary' : 'primary'}
+              sx={{ mb: 1, fontWeight: 600 }}
+            />
+          )}
+          {winner && (
+            <Chip
+              label={`Winner: ${winner}`}
+              variant="outlined"
+              color="warning"
+              sx={{ mb: 1, fontWeight: 600 }}
+            />
+          )}
         </Paper>
       </Box>
       <PaperLottie text={opponentName}>

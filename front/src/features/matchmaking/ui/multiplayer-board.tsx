@@ -1,17 +1,23 @@
 import { Board } from '@/entities';
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { useMultiplayerGameStore, useMultiplayerSessionStore } from '../store';
 import versusIcon from './assets/versus.png';
 import { MultiplayerGameState } from './multiplayer-game-state';
 import { useMultiplayerGameHandler } from '../hooks';
 import { useEffect } from 'react';
 
-export function MultiplayerBoard() {
+interface MultiplayerBoardProps {
+  onResign: () => void;
+  onBackToLobby: () => void;
+}
+
+export function MultiplayerBoard({ onResign, onBackToLobby }: MultiplayerBoardProps) {
   const board = useMultiplayerGameStore(state => state.board);
   const ships = useMultiplayerGameStore(state => state.ships);
   const enemyBoard = useMultiplayerGameStore(state => state.enemyBoard);
   const enemyShips = useMultiplayerGameStore(state => state.enemyShips);
   const sessionId = useMultiplayerSessionStore(state => state.gameId);
+  const winnerUserId = useMultiplayerSessionStore(state => state.winnerUserId);
 
   const handleUserClick = useMultiplayerGameHandler();
 
@@ -46,20 +52,38 @@ export function MultiplayerBoard() {
           ships={ships}
           variant="player"
         />
-        <Box
-          sx={{
-            maxWidth: 100,
-            maxHeight: 100,
-          }}
-        >
-          <img
-            src={versusIcon}
-            alt="Versus"
-            style={{
-              width: '100%',
-              height: '100%',
+        <Box>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={onResign}
+            disabled={winnerUserId !== null}
+          >
+            Resign
+          </Button>
+          <Box
+            sx={{
+              maxWidth: 100,
+              maxHeight: 100,
             }}
-          />
+          >
+            <img
+              src={versusIcon}
+              alt="Versus"
+              style={{
+                width: '100%',
+                height: '100%',
+              }}
+            />
+          </Box>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={onBackToLobby}
+            disabled={!winnerUserId}
+          >
+            Back to lobby
+          </Button>
         </Box>
         <Board
           board={enemyBoard}

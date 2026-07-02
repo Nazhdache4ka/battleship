@@ -1,14 +1,15 @@
 import { useMemo } from 'react';
-import { Box, Button, Typography, CircularProgress } from '@mui/material';
+import { Box, Button, Typography, CircularProgress, Tooltip } from '@mui/material';
 import { useMultiplayerSessionStore } from '../store';
 import { MultiplayerPhase, ErrorAlert } from '@/shared';
 
 interface IdleScreenProps {
   onJoinQueue: () => void;
   onLeaveQueue: () => void;
+  onReconnect: () => void;
 }
 
-export function IdleScreen({ onJoinQueue, onLeaveQueue }: IdleScreenProps) {
+export function IdleScreen({ onJoinQueue, onLeaveQueue, onReconnect }: IdleScreenProps) {
   const multiplayerPhase = useMultiplayerSessionStore(state => state.multiplayerPhase);
   const errorMessage = useMultiplayerSessionStore(state => state.errorMessage);
   const setErrorMessage = useMultiplayerSessionStore(state => state.setErrorMessage);
@@ -16,13 +17,24 @@ export function IdleScreen({ onJoinQueue, onLeaveQueue }: IdleScreenProps) {
   const button = useMemo(() => {
     if (multiplayerPhase === MultiplayerPhase.IDLE) {
       return (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={onJoinQueue}
-        >
-          Start Game
-        </Button>
+        <>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={onJoinQueue}
+          >
+            Start Game
+          </Button>
+          <Tooltip title="Reconnect to the game, please don't use for no reason">
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={onReconnect}
+            >
+              Reconnect
+            </Button>
+          </Tooltip>
+        </>
       );
     }
 
@@ -35,7 +47,7 @@ export function IdleScreen({ onJoinQueue, onLeaveQueue }: IdleScreenProps) {
         Stop Searching
       </Button>
     );
-  }, [multiplayerPhase, onJoinQueue, onLeaveQueue]);
+  }, [multiplayerPhase, onJoinQueue, onLeaveQueue, onReconnect]);
 
   const handleCloseErrorMessage = () => {
     setErrorMessage(null);

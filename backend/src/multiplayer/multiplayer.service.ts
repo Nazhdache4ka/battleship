@@ -115,4 +115,157 @@ export class MultiplayerService {
       throw new Error(`Failed to handle move: ${error}`);
     }
   }
+
+  async resumeGame(userId: number, clientSocketId: string, server: Server) {
+    const player = this.queuePlayers.find(player => player.userId === userId);
+
+    if (player) {
+      server.to(clientSocketId).emit('game:error', {
+        message: 'You are currently searching for a new game',
+      });
+      return;
+    }
+
+    const now = new Date();
+
+    await this.prisma.onlineGameSession.updateMany({
+      where: {
+        status: 'ACTIVE',
+        expiresAt: { lte: now },
+        players: {
+          some: { userId },
+        },
+      },
+      data: {
+        status: 'EXPIRED',
+      },
+    });
+
+    const reconnectPlayer = await this.prisma.onlineGamePlayer.findFirst({
+      where: {
+        userId,
+        session: {
+          status: 'ACTIVE',
+          expiresAt: { gt: now },
+        },
+      },
+      include: {
+        session: true,
+      },
+      orderBy: {
+        session: {
+          updatedAt: 'desc',
+        },
+      },
+    });
+
+    if (!reconnectPlayer) {
+      server.to(clientSocketId).emit('game:resume:not-found', {
+        message: 'No active game found',
+      });
+      return;
+    }
+
+    const reconnectOpponent = await this.prisma.onlineGamePlayer.findFirst({
+      where: {
+        sessionId: reconnectPlayer.sessionId,
+        userId: { not: userId },
+      },
+    });
+
+    if (!reconnectOpponent) {
+      server.to(clientSocketId).emit('game:error', {
+        message: 'Opponent not found for active game',
+      });
+      return;
+    }
+
+    await this.prisma.onlineGamePlayer.update({
+      where: { id: reconnectPlayer.id },
+      data: { socketId: clientSocketId },
+    });
+
+    const opponentInfo = await getOpponentInfo(reconnectOpponent.userId, this.prisma);
+
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await server.in(clientSocketId).socketsJoin(`game:${reconnectPlayer.sessionId}`);
+
+    const winnerUserId = reconnectPlayer.session.winnerUserId ?? null;
+
+    server.to(clientSocketId).emit('game:state', {
+      gameId: reconnectPlayer.sessionId,
+      status: reconnectPlayer.session.status,
+      currentTurnUserId: reconnectPlayer.session.currentTurnUserId,
+      ...getMovePayload(
+        reconnectPlayer.board as unknown as Board,
+        reconnectOpponent.board as unknown as Board,
+        winnerUserId
+      ),
+      opponent: opponentInfo.name,
+    });
+  }
+
+  async resignGame(userId: number, clientSocketId: string, server: Server) {
+    const now = new Date();
+
+    const resignPlayer = await this.prisma.onlineGamePlayer.findFirst({
+      where: {
+        userId,
+        session: {
+          status: 'ACTIVE',
+          expiresAt: { gt: now },
+        },
+      },
+      include: {
+        session: true,
+      },
+      orderBy: {
+        session: {
+          updatedAt: 'desc',
+        },
+      },
+    });
+
+    if (!resignPlayer) {
+      server.to(clientSocketId).emit('game:error', {
+        message: 'No active game to resign',
+      });
+      return;
+    }
+
+    const opponent = await this.prisma.onlineGamePlayer.findFirst({
+      where: {
+        sessionId: resignPlayer.sessionId,
+        userId: { not: userId },
+      },
+    });
+
+    if (!opponent) {
+      server.to(clientSocketId).emit('game:error', {
+        message: 'Opponent not found for active game',
+      });
+      return;
+    }
+
+    const winnerUserId = opponent.userId;
+
+    await this.prisma.onlineGameSession.update({
+      where: { id: resignPlayer.sessionId },
+      data: {
+        status: 'FINISHED',
+        winnerUserId,
+        currentTurnUserId: null,
+      },
+    });
+
+    server.to(resignPlayer.socketId).emit('game:move:state', {
+      currentTurnUserId: null,
+      ...getMovePayload(resignPlayer.board as unknown as Board, opponent.board as unknown as Board, winnerUserId),
+    });
+
+    server.to(opponent.socketId).emit('game:move:state', {
+      currentTurnUserId: null,
+      ...getMovePayload(opponent.board as unknown as Board, resignPlayer.board as unknown as Board, winnerUserId),
+    });
+  }
 }

@@ -42,6 +42,19 @@ export function useMultiplayerEvents() {
   ]);
 
   useEffect(() => {
+    socket.on('game:state', data => {
+      setBoard(data.board);
+      setShips(data.ships);
+      setEnemyBoard(data.enemyBoard);
+      setEnemyShips(data.enemyShips);
+      setGameId(data.gameId);
+      setMultiplayerPhase(MultiplayerPhase.STARTED);
+      setGameStatus(GameStatus.ACTIVE);
+      setOpponentName(data.opponent);
+      setCurrentTurnUserId(data.currentTurnUserId);
+      setWinnerUserId(data.winnerUserId ?? null);
+    });
+
     socket.on('game:start', data => {
       setBoard(data.board);
       setShips(data.ships);
@@ -61,9 +74,17 @@ export function useMultiplayerEvents() {
       setGameStatus(GameStatus.WAITING);
     });
 
+    socket.on('game:resume:not-found', data => {
+      setErrorMessage(data.message ?? 'No active game found');
+      setMultiplayerPhase(MultiplayerPhase.IDLE);
+      setGameStatus(GameStatus.WAITING);
+    });
+
     return () => {
+      socket.off('game:state');
       socket.off('game:start');
       socket.off('game:error');
+      socket.off('game:resume:not-found');
     };
   }, [
     socket,

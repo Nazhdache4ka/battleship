@@ -10,7 +10,7 @@ export function MatchmakingOrchestrator() {
 
   useSocketConnectionHandler();
   useMultiplayerEvents();
-  const { joinQueue, leaveQueue } = useMultiplayerHandlers();
+  const { joinQueue, leaveQueue, reconnect, resign, resetStates } = useMultiplayerHandlers();
 
   switch (multiplayerPhase) {
     case MultiplayerPhase.IDLE:
@@ -19,12 +19,23 @@ export function MatchmakingOrchestrator() {
         <IdleScreen
           onJoinQueue={joinQueue}
           onLeaveQueue={leaveQueue}
+          onReconnect={reconnect}
         />
       );
     case MultiplayerPhase.STARTED:
-      return <MultiplayerBoard />;
+      return (
+        <MultiplayerBoard
+          onResign={resign}
+          onBackToLobby={resetStates}
+        />
+      );
     case MultiplayerPhase.FINISHED:
-      return <MultiplayerBoard />;
+      return (
+        <MultiplayerBoard
+          onResign={resign}
+          onBackToLobby={resetStates}
+        />
+      );
     default:
       return null;
   }

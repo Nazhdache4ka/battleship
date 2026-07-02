@@ -105,4 +105,26 @@ export class MultiplayerGateway implements OnGatewayConnection, OnGatewayDisconn
 
     await this.multiplayerService.handleMove({ userId, ...payload, server: this.server });
   }
+
+  @SubscribeMessage('game:resume')
+  async handleResume(@ConnectedSocket() client: AppSocket) {
+    const userId = client.data.user?.id;
+
+    if (userId == null) {
+      throw new WsException('Unauthorized');
+    }
+
+    await this.multiplayerService.resumeGame(userId, client.id, this.server);
+  }
+
+  @SubscribeMessage('game:resign')
+  async handleResign(@ConnectedSocket() client: AppSocket) {
+    const userId = client.data.user?.id;
+
+    if (userId == null) {
+      throw new WsException('Unauthorized');
+    }
+
+    await this.multiplayerService.resignGame(userId, client.id, this.server);
+  }
 }
