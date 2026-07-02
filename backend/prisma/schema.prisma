@@ -74,6 +74,7 @@ model OnlineGamePlayer {
   sessionId Int
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
+  socketId String @default("")
   board Json
   isReady Boolean @default(false)
   slot OnlineGameSlot

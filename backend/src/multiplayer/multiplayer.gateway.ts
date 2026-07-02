@@ -11,6 +11,7 @@ import {
 import { MultiplayerService } from './multiplayer.service';
 import { AppSocket } from 'src/types/app-socket';
 import { Board } from 'src/types/interfaces';
+import { validateBoard } from 'src/utils/game-logic/validate-board';
 import { JwtService } from '@nestjs/jwt';
 import { Server } from 'socket.io';
 
@@ -71,7 +72,13 @@ export class MultiplayerGateway implements OnGatewayConnection, OnGatewayDisconn
       throw new WsException('Unauthorized');
     }
 
-    await this.multiplayerService.joinQueue(client, payload, this.server);
+    const validBoard = validateBoard(payload.board);
+
+    if (!validBoard) {
+      throw new WsException('Invalid board');
+    }
+
+    await this.multiplayerService.joinQueue(client, { board: validBoard }, this.server);
   }
 
   @SubscribeMessage('queue:leave')
@@ -83,5 +90,19 @@ export class MultiplayerGateway implements OnGatewayConnection, OnGatewayDisconn
     }
 
     this.multiplayerService.leaveQueue(userId);
+  }
+
+  @SubscribeMessage('game:move')
+  async handleMove(
+    @ConnectedSocket() client: AppSocket,
+    @MessageBody() payload: { gameId: number; x: number; y: number }
+  ) {
+    const userId = client.data.user?.id;
+
+    if (userId == null) {
+      throw new WsException('Unauthorized');
+    }
+
+    await this.multiplayerService.handleMove({ userId, ...payload, server: this.server });
   }
 }

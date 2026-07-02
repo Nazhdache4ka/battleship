@@ -1,0 +1,92 @@
+import { useMemo } from 'react';
+import { Box, Chip, Paper, Typography, alpha } from '@mui/material';
+import { FaRegCircleStop } from 'react-icons/fa6';
+import { LuSwords } from 'react-icons/lu';
+import { useAuthStore, PaperLottie, UserLottie } from '@/shared';
+import { useMultiplayerGameStore, useMultiplayerSessionStore } from '../store';
+
+export function MultiplayerGameState() {
+  const currentTurnUserId = useMultiplayerGameStore(state => state.currentTurnUserId);
+  const gameId = useMultiplayerSessionStore(state => state.gameId);
+  const winnerUserId = useMultiplayerSessionStore(state => state.winnerUserId);
+  const user = useAuthStore(state => state.user);
+  const opponentName = useMultiplayerSessionStore(state => state.opponentName);
+
+  const isUserTurn = useMemo(() => currentTurnUserId === user?.id, [currentTurnUserId, user]);
+  const isGameFinished = useMemo(() => winnerUserId !== null, [winnerUserId]);
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        gap: { xs: 2, md: 40 },
+        flexDirection: { xs: 'column', md: 'row' },
+        alignItems: 'center',
+        justifyContent: 'center',
+        mb: 4,
+      }}
+    >
+      <PaperLottie text={user?.name}>
+        <UserLottie />
+      </PaperLottie>
+      <Box
+        sx={{
+          display: 'flex',
+          maxWidth: 200,
+          minHeight: 160,
+        }}
+      >
+        <Paper
+          elevation={1}
+          sx={{
+            display: 'flex',
+            maxWidth: { xs: '160px', md: 200 },
+            flexDirection: 'column',
+            justifyContent: 'center',
+            px: 2,
+            py: 1,
+            borderRadius: 3,
+            border: theme => `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
+            background: theme =>
+              `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.14)}, ${alpha(theme.palette.secondary.main, 0.12)})`,
+            backdropFilter: 'blur(4px)',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1,
+              mb: 1.5,
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{ opacity: 0.8 }}
+            >
+              Session #{gameId}
+            </Typography>
+            <Chip
+              color="primary"
+              icon={isGameFinished ? <FaRegCircleStop /> : <LuSwords />}
+              label={isGameFinished ? 'Game Over' : 'Clash'}
+              variant="outlined"
+            />
+          </Box>
+
+          <Chip
+            label={isGameFinished ? 'Game Over' : isUserTurn ? 'Your Turn' : "Opponent's Turn"}
+            variant="outlined"
+            color={isGameFinished ? 'warning' : isUserTurn ? 'secondary' : 'primary'}
+            sx={{ mb: 1, fontWeight: 600 }}
+          />
+        </Paper>
+      </Box>
+      <PaperLottie text={opponentName}>
+        <UserLottie />
+      </PaperLottie>
+    </Box>
+  );
+}

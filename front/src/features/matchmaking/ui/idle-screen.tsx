@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Box, Button, Typography, CircularProgress } from '@mui/material';
-import { useMultiplayerStore } from '../store';
+import { useMultiplayerSessionStore } from '../store';
 import { MultiplayerPhase, ErrorAlert } from '@/shared';
 
 interface IdleScreenProps {
@@ -9,9 +9,9 @@ interface IdleScreenProps {
 }
 
 export function IdleScreen({ onJoinQueue, onLeaveQueue }: IdleScreenProps) {
-  const multiplayerPhase = useMultiplayerStore(state => state.multiplayerPhase);
-  const errorMessage = useMultiplayerStore(state => state.errorMessage);
-  const setErrorMessage = useMultiplayerStore(state => state.setErrorMessage);
+  const multiplayerPhase = useMultiplayerSessionStore(state => state.multiplayerPhase);
+  const errorMessage = useMultiplayerSessionStore(state => state.errorMessage);
+  const setErrorMessage = useMultiplayerSessionStore(state => state.setErrorMessage);
 
   const button = useMemo(() => {
     if (multiplayerPhase === MultiplayerPhase.IDLE) {

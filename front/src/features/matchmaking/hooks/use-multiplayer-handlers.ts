@@ -1,11 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { getMultiplayerSocket } from '../api';
 import { MultiplayerPhase, useGameStore } from '@/shared';
-import { useMultiplayerStore } from '../store';
+import { useMultiplayerSessionStore } from '../store';
 
 export function useMultiplayerHandlers() {
   const { board } = useGameStore();
-  const { setMultiplayerPhase } = useMultiplayerStore();
+  const { setMultiplayerPhase } = useMultiplayerSessionStore();
 
   const socket = useMemo(() => {
     return getMultiplayerSocket();

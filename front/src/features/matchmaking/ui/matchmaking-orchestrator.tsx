@@ -1,12 +1,12 @@
 import { IdleScreen } from './idle-screen';
 import { MultiplayerBoard } from './multiplayer-board';
 import { useMultiplayerHandlers, useSocketConnectionHandler } from '../hooks';
-import { useMultiplayerStore } from '../store';
+import { useMultiplayerSessionStore } from '../store';
 import { MultiplayerPhase } from '@/shared';
-import { useMultiplayerEvents } from '../hooks/use-multiplayer-events';
+import { useMultiplayerEvents } from '../hooks';
 
 export function MatchmakingOrchestrator() {
-  const multiplayerPhase = useMultiplayerStore(state => state.multiplayerPhase);
+  const multiplayerPhase = useMultiplayerSessionStore(state => state.multiplayerPhase);
 
   useSocketConnectionHandler();
   useMultiplayerEvents();
