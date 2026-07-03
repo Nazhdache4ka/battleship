@@ -1,73 +1,141 @@
-# React + TypeScript + Vite
+# Battleship Fullstack
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This repository contains a fullstack Battleship game built with a React frontend and a NestJS backend.
 
-Currently, two official plugins are available:
+The project currently includes production-style authentication, persistent user profiles, board presets, and AI gameplay. Realtime multiplayer support is implemented in the codebase and is under active hardening.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Project Structure
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+fullstack/
+├── backend/   # NestJS API, Prisma, PostgreSQL
+└── front/     # React + Vite client app
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Tech Stack
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Backend
+- `NestJS` `11.x` — modular API architecture (controllers, services, modules)
+- `Prisma` `7.x` + `PostgreSQL` — typed data access, migrations, and relational persistence
+- `JWT` (`@nestjs/jwt`) — access and refresh token authentication
+- `cookie-parser` — httpOnly refresh-token cookie handling
+- `class-validator` + `class-transformer` — DTO validation and request payload safety
+- `Socket.IO` (`@nestjs/websockets`, `socket.io`) — realtime multiplayer transport
+- `Swagger` (`@nestjs/swagger`) — interactive API documentation at `/docs`
+- `Joi` (`@nestjs/config`) — environment configuration validation at startup
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Frontend
+- `React` `19.x` + `TypeScript` `6.x` — strongly typed component architecture
+- `Vite` `8.x` — fast local dev server and production build pipeline
+- `TanStack Router` `1.x` — type-safe route tree and nested app layouts
+- `TanStack Query` `5.x` — server-state synchronization and request lifecycle management
+- `Zustand` `5.x` — lightweight client-state store for game and session state
+- `MUI` `9.x` + `Emotion` — UI primitives and consistent design system
+- `Axios` `1.x` — HTTP client with centralized interceptors/auth handling
+- `Socket.IO Client` `4.x` — realtime events for matchmaking and multiplayer gameplay
+
+## Implemented Features
+
+- User registration and login
+- Access/refresh token authentication flow
+- Persistent user board preset
+- AI game session lifecycle
+  - start session
+  - apply user turn
+  - trigger AI turns
+  - delete session
+- Multiplayer module in progress
+  - matchmaking queue
+  - realtime move synchronization
+  - reconnect/resume flow
+  - resign flow
+
+## API Overview
+
+Base URL (local): `http://localhost:3000`
+
+### Main REST endpoints
+- `POST /auth/register`
+- `POST /auth/login`
+- `POST /auth/logout`
+- `POST /auth/refresh`
+- `GET /users/board-preset`
+- `POST /users/board-preset`
+- `POST /ai-game/start`
+- `POST /ai-game/turn/:sessionId`
+- `POST /ai-game/apply-turn/:sessionId`
+- `DELETE /ai-game/session/:sessionId`
+
+Swagger docs: `http://localhost:3000/docs`
+
+### Realtime namespace
+- Namespace: `/multiplayer`
+- Current events include queue, move, resume, and resign flows.
+
+## Environment Variables
+
+Create `backend/.env` (or `.env.local`) with at least:
+
+```env
+PORT=3000
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DB_NAME
+JWT_ACCESS_SECRET=your_access_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+FRONTEND_URL=http://localhost:5173
 ```
+
+Create `front/.env`:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+## Local Development
+
+### 1) Install dependencies
+
+```bash
+cd backend && npm install
+cd ../front && npm install
+```
+
+### 2) Generate Prisma client and run migrations
+
+```bash
+cd backend
+npm run prisma:generate
+npm run prisma:migrate
+```
+
+### 3) Start backend
+
+```bash
+cd backend
+npm run start:dev
+```
+
+### 4) Start frontend
+
+```bash
+cd front
+npm run dev
+```
+
+Frontend will be available at `http://localhost:5173`.
+
+## Useful Scripts
+
+### Backend
+- `npm run start:dev` — run API in watch mode
+- `npm run build` — build backend
+- `npm run prisma:generate` — generate Prisma client
+- `npm run prisma:migrate` — create/apply migrations in dev
+- `npm run lint` — run ESLint
+- `npm run test` — run tests
+
+### Frontend
+- `npm run dev` — run frontend dev server
+- `npm run build` — typecheck + production build
+- `npm run preview` — preview production build
+- `npm run lint` — run ESLint
+
