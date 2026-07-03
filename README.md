@@ -34,6 +34,29 @@ fullstack/
 - `Axios` `1.x` — HTTP client with centralized interceptors/auth handling
 - `Socket.IO Client` `4.x` — realtime events for matchmaking and multiplayer gameplay
 
+## Architecture
+
+### Frontend Architecture (FSD)
+The frontend follows a Feature-Sliced Design style with clear responsibility boundaries:
+- `app` — application bootstrap, providers, routing entry points
+- `pages` — route-level page composition
+- `widgets` — larger UI blocks assembled from features/entities
+- `features` — user scenarios and business actions (auth, matchmaking, game flows)
+- `entities` — domain entities and reusable domain UI components
+- `shared` — cross-cutting utilities, UI kit, API config, constants, base hooks
+
+This structure keeps business logic close to use-cases and reduces coupling between UI layers.
+
+### Backend Architecture (NestJS Canonical Style)
+The backend uses NestJS module-oriented architecture:
+- `module` level boundaries for each domain (`auth`, `users`, `ai-game`, `multiplayer`, `token`, `session`)
+- `controllers` for transport-level concerns (HTTP/WebSocket handlers)
+- `services` for business logic orchestration
+- `dto` + validation pipeline for input contracts
+- `prisma` as the persistence layer with migrations and typed data access
+
+This approach keeps transport, business logic, and data access separated and predictable.
+
 ## Implemented Features
 
 - User registration and login
