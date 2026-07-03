@@ -125,6 +125,6 @@ export class MultiplayerGateway implements OnGatewayConnection, OnGatewayDisconn
       throw new WsException('Unauthorized');
     }
 
-    await this.multiplayerService.resignGame(userId, client.id, this.server);
+    await this.multiplayerService.resignGame(userId, this.server);
   }
 }

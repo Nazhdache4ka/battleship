@@ -13,6 +13,11 @@ import { applyMove } from 'src/utils/game-logic/apply-move';
 import { getMatchmakingWinner } from './utils/get-matchmaking-winner';
 import { getMovePayload } from './utils/get-move-payload';
 import { COLUMN_NUMBER, ROW_NUMBER } from 'src/models/basic-constants';
+import { resumeGameTransaction } from './utils/resume-game-transaction';
+import { resignGameTransaction } from './utils/resign-game-transaction';
+
+type ResumeTransactionResult = Awaited<ReturnType<typeof resumeGameTransaction>>;
+type ResignTransactionResult = Awaited<ReturnType<typeof resignGameTransaction>>;
 
 @Injectable()
 export class MultiplayerService {
@@ -126,146 +131,54 @@ export class MultiplayerService {
       return;
     }
 
-    const now = new Date();
-
-    await this.prisma.onlineGameSession.updateMany({
-      where: {
-        status: 'ACTIVE',
-        expiresAt: { lte: now },
-        players: {
-          some: { userId },
-        },
-      },
-      data: {
-        status: 'EXPIRED',
-      },
-    });
-
-    const reconnectPlayer = await this.prisma.onlineGamePlayer.findFirst({
-      where: {
+    try {
+      const { reconnectPlayer, reconnectOpponent }: ResumeTransactionResult = await resumeGameTransaction(
+        this.prisma,
         userId,
-        session: {
-          status: 'ACTIVE',
-          expiresAt: { gt: now },
-        },
-      },
-      include: {
-        session: true,
-      },
-      orderBy: {
-        session: {
-          updatedAt: 'desc',
-        },
-      },
-    });
+        clientSocketId
+      );
 
-    if (!reconnectPlayer) {
-      server.to(clientSocketId).emit('game:resume:not-found', {
-        message: 'No active game found',
+      const opponentInfo = await getOpponentInfo(reconnectOpponent.userId, this.prisma);
+
+      // eslint-disable-next-line @typescript-eslint/await-thenable
+      await server.in(clientSocketId).socketsJoin(`game:${reconnectPlayer.sessionId}`);
+
+      const winnerUserId = reconnectPlayer.session.winnerUserId ?? null;
+
+      server.to(clientSocketId).emit('game:state', {
+        gameId: reconnectPlayer.sessionId,
+        status: reconnectPlayer.session.status,
+        currentTurnUserId: reconnectPlayer.session.currentTurnUserId,
+        ...getMovePayload(
+          reconnectPlayer.board as unknown as Board,
+          reconnectOpponent.board as unknown as Board,
+          winnerUserId
+        ),
+        opponent: opponentInfo.name,
       });
-      return;
+    } catch (error) {
+      throw new Error(`Failed to resume game: ${error}`);
     }
-
-    const reconnectOpponent = await this.prisma.onlineGamePlayer.findFirst({
-      where: {
-        sessionId: reconnectPlayer.sessionId,
-        userId: { not: userId },
-      },
-    });
-
-    if (!reconnectOpponent) {
-      server.to(clientSocketId).emit('game:error', {
-        message: 'Opponent not found for active game',
-      });
-      return;
-    }
-
-    await this.prisma.onlineGamePlayer.update({
-      where: { id: reconnectPlayer.id },
-      data: { socketId: clientSocketId },
-    });
-
-    const opponentInfo = await getOpponentInfo(reconnectOpponent.userId, this.prisma);
-
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    await server.in(clientSocketId).socketsJoin(`game:${reconnectPlayer.sessionId}`);
-
-    const winnerUserId = reconnectPlayer.session.winnerUserId ?? null;
-
-    server.to(clientSocketId).emit('game:state', {
-      gameId: reconnectPlayer.sessionId,
-      status: reconnectPlayer.session.status,
-      currentTurnUserId: reconnectPlayer.session.currentTurnUserId,
-      ...getMovePayload(
-        reconnectPlayer.board as unknown as Board,
-        reconnectOpponent.board as unknown as Board,
-        winnerUserId
-      ),
-      opponent: opponentInfo.name,
-    });
   }
 
-  async resignGame(userId: number, clientSocketId: string, server: Server) {
-    const now = new Date();
+  async resignGame(userId: number, server: Server) {
+    try {
+      const { resignPlayer, opponent, winnerUserId }: ResignTransactionResult = await resignGameTransaction(
+        this.prisma,
+        userId
+      );
 
-    const resignPlayer = await this.prisma.onlineGamePlayer.findFirst({
-      where: {
-        userId,
-        session: {
-          status: 'ACTIVE',
-          expiresAt: { gt: now },
-        },
-      },
-      include: {
-        session: true,
-      },
-      orderBy: {
-        session: {
-          updatedAt: 'desc',
-        },
-      },
-    });
-
-    if (!resignPlayer) {
-      server.to(clientSocketId).emit('game:error', {
-        message: 'No active game to resign',
-      });
-      return;
-    }
-
-    const opponent = await this.prisma.onlineGamePlayer.findFirst({
-      where: {
-        sessionId: resignPlayer.sessionId,
-        userId: { not: userId },
-      },
-    });
-
-    if (!opponent) {
-      server.to(clientSocketId).emit('game:error', {
-        message: 'Opponent not found for active game',
-      });
-      return;
-    }
-
-    const winnerUserId = opponent.userId;
-
-    await this.prisma.onlineGameSession.update({
-      where: { id: resignPlayer.sessionId },
-      data: {
-        status: 'FINISHED',
-        winnerUserId,
+      server.to(resignPlayer.socketId).emit('game:move:state', {
         currentTurnUserId: null,
-      },
-    });
+        ...getMovePayload(resignPlayer.board as unknown as Board, opponent.board as unknown as Board, winnerUserId),
+      });
 
-    server.to(resignPlayer.socketId).emit('game:move:state', {
-      currentTurnUserId: null,
-      ...getMovePayload(resignPlayer.board as unknown as Board, opponent.board as unknown as Board, winnerUserId),
-    });
-
-    server.to(opponent.socketId).emit('game:move:state', {
-      currentTurnUserId: null,
-      ...getMovePayload(opponent.board as unknown as Board, resignPlayer.board as unknown as Board, winnerUserId),
-    });
+      server.to(opponent.socketId).emit('game:move:state', {
+        currentTurnUserId: null,
+        ...getMovePayload(opponent.board as unknown as Board, resignPlayer.board as unknown as Board, winnerUserId),
+      });
+    } catch (error) {
+      throw new Error(`Failed to resign game: ${error}`);
+    }
   }
 }

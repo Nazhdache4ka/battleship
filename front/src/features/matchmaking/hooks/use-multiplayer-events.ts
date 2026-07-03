@@ -49,7 +49,7 @@ export function useMultiplayerEvents() {
       setEnemyShips(data.enemyShips);
       setGameId(data.gameId);
       setMultiplayerPhase(MultiplayerPhase.STARTED);
-      setGameStatus(GameStatus.ACTIVE);
+      setGameStatus(data.status);
       setOpponentName(data.opponent);
       setCurrentTurnUserId(data.currentTurnUserId);
       setWinnerUserId(data.winnerUserId ?? null);
