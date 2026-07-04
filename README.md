@@ -2,7 +2,7 @@
 
 This repository contains a fullstack Battleship game built with a React frontend and a NestJS backend.
 
-The project currently includes production-style authentication, persistent user profiles, board presets, and AI gameplay. Realtime multiplayer support is implemented in the codebase and is under active hardening.
+The project currently includes production-style authentication, persistent user profiles, board presets, AI gameplay, and a fully implemented realtime multiplayer mode.
 
 ## Project Structure
 
@@ -67,7 +67,7 @@ This approach keeps transport, business logic, and data access separated and pre
   - apply user turn
   - trigger AI turns
   - delete session
-- Multiplayer module in progress
+- Multiplayer mode
   - matchmaking queue
   - realtime move synchronization
   - reconnect/resume flow
@@ -93,7 +93,7 @@ Swagger docs: `http://localhost:3000/docs`
 
 ### Realtime namespace
 - Namespace: `/multiplayer`
-- Current events include queue, move, resume, and resign flows.
+- Current events include queue, move, resume, and resign flows for complete match lifecycle handling.
 
 ## Environment Variables
 
