@@ -27,6 +27,7 @@ model User {
 
   refreshTokens RefreshToken[]
   aiGameSessions AiGameSession[]
+  onlineGamePlayers OnlineGamePlayer[]
 }
 
 model RefreshToken {
@@ -48,11 +49,42 @@ model AiGameSession {
   aiBoard Json
   aiShotsHistory Json @default("[]")
   currentTurn AiGameTurn @default(USER)
-  status AiGameSessionStatus @default(ACTIVE)
+  status GameSessionStatus @default(ACTIVE)
   messages Json @default("[]")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   expiresAt DateTime
+}
+
+model OnlineGameSession {
+  id Int @id @default(autoincrement())
+  status GameSessionStatus @default(WAITING)
+  currentTurnUserId Int?
+  winnerUserId Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime
+
+  players OnlineGamePlayer[]
+}
+
+model OnlineGamePlayer {
+  id Int @id @default(autoincrement())
+  session OnlineGameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+  socketId String @default("")
+  board Json
+  isReady Boolean @default(false)
+  slot OnlineGameSlot
+
+  @@unique([sessionId, userId])
+}
+
+enum OnlineGameSlot {
+  FIRST
+  SECOND
 }
 
 enum Role {
@@ -65,7 +97,8 @@ enum AiGameTurn {
   AI
 }
 
-enum AiGameSessionStatus {
+enum GameSessionStatus {
+  WAITING
   ACTIVE
   FINISHED
   EXPIRED

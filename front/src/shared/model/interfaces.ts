@@ -88,3 +88,21 @@ export const AiGamePhase = {
 } as const;
 
 export type AiGamePhase = (typeof AiGamePhase)[keyof typeof AiGamePhase];
+
+export const GameStatus = {
+  WAITING: 'waiting',
+  ACTIVE: 'active',
+  FINISHED: 'finished',
+  EXPIRED: 'expired',
+} as const;
+
+export type GameStatus = (typeof GameStatus)[keyof typeof GameStatus];
+
+export const MultiplayerPhase = {
+  IDLE: 'idle',
+  SEARCHING: 'searching',
+  STARTED: 'started',
+  FINISHED: 'finished',
+} as const;
+
+export type MultiplayerPhase = (typeof MultiplayerPhase)[keyof typeof MultiplayerPhase];

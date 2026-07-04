@@ -1,0 +1,97 @@
+import { Board } from '@/entities';
+import { Box, Button } from '@mui/material';
+import { useMultiplayerGameStore, useMultiplayerSessionStore } from '../store';
+import versusIcon from './assets/versus.png';
+import { MultiplayerGameState } from './multiplayer-game-state';
+import { useMultiplayerGameHandler } from '../hooks';
+import { useEffect } from 'react';
+
+interface MultiplayerBoardProps {
+  onResign: () => void;
+  onBackToLobby: () => void;
+}
+
+export function MultiplayerBoard({ onResign, onBackToLobby }: MultiplayerBoardProps) {
+  const board = useMultiplayerGameStore(state => state.board);
+  const ships = useMultiplayerGameStore(state => state.ships);
+  const enemyBoard = useMultiplayerGameStore(state => state.enemyBoard);
+  const enemyShips = useMultiplayerGameStore(state => state.enemyShips);
+  const sessionId = useMultiplayerSessionStore(state => state.gameId);
+  const winnerUserId = useMultiplayerSessionStore(state => state.winnerUserId);
+
+  const handleUserClick = useMultiplayerGameHandler();
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [sessionId]);
+
+  return (
+    <>
+      <MultiplayerGameState />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: { xs: 2, md: 8 },
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Board
+          board={board}
+          ships={ships}
+          variant="player"
+        />
+        <Box>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={onResign}
+            disabled={winnerUserId !== null}
+          >
+            Resign
+          </Button>
+          <Box
+            sx={{
+              maxWidth: 100,
+              maxHeight: 100,
+            }}
+          >
+            <img
+              src={versusIcon}
+              alt="Versus"
+              style={{
+                width: '100%',
+                height: '100%',
+              }}
+            />
+          </Box>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={onBackToLobby}
+            disabled={!winnerUserId}
+          >
+            Back to lobby
+          </Button>
+        </Box>
+        <Board
+          board={enemyBoard}
+          ships={enemyShips}
+          variant="enemy"
+          onClick={handleUserClick}
+        />
+      </Box>
+    </>
+  );
+}

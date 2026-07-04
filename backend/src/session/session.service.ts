@@ -1,10 +1,95 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AiGameSession, Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class SessionService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async getOnlineGameSessionAndPlayer(sessionId: number, userId: number) {
+    await this.validateOwnershipAndExpirationOnlineGameSession(sessionId, userId);
+
+    const session = await this.prisma.onlineGameSession.findUniqueOrThrow({
+      where: { id: sessionId },
+    });
+
+    const player = await this.prisma.onlineGamePlayer.findUniqueOrThrow({
+      where: { sessionId_userId: { sessionId, userId } },
+    });
+
+    return { session, player };
+  }
+
+  async getOnlineGameOpponent(sessionId: number, userId: number) {
+    const opponent = await this.prisma.onlineGamePlayer.findFirst({
+      where: { sessionId: sessionId, userId: { not: userId } },
+    });
+
+    if (!opponent) {
+      throw new NotFoundException('Opponent not found');
+    }
+
+    return opponent;
+  }
+
+  async validateOwnershipAndExpirationOnlineGameSession(sessionId: number, userId: number): Promise<void> {
+    const session = await this.prisma.onlineGameSession.findUnique({
+      where: { id: sessionId },
+      select: { expiresAt: true, status: true },
+    });
+
+    if (!session || session.expiresAt < new Date()) {
+      throw new NotFoundException('Online game session not found');
+    }
+
+    if (session.status === 'FINISHED' || session.status === 'EXPIRED') {
+      throw new BadRequestException('Online game session is finished or expired');
+    }
+
+    const player = await this.prisma.onlineGamePlayer.findUnique({
+      where: { sessionId_userId: { sessionId, userId } },
+    });
+
+    if (!player) {
+      throw new NotFoundException('Player not found');
+    }
+  }
+
+  async updateOnlineGamePlayer(sessionId: number, userId: number, data: Prisma.OnlineGamePlayerUpdateInput) {
+    await this.validateOwnershipAndExpirationOnlineGameSession(sessionId, userId);
+
+    if (!this.hasUpdateData(data)) {
+      return this.prisma.onlineGamePlayer.findUniqueOrThrow({
+        where: { sessionId_userId: { sessionId, userId } },
+      });
+    }
+
+    return this.prisma.onlineGamePlayer.update({
+      where: { sessionId_userId: { sessionId, userId } },
+      data,
+    });
+  }
+
+  async updateOnlineGameSession(sessionId: number, userId: number, data: Prisma.OnlineGameSessionUpdateInput) {
+    await this.validateOwnershipAndExpirationOnlineGameSession(sessionId, userId);
+
+    if (!this.hasUpdateData(data)) {
+      return this.prisma.onlineGameSession.findUniqueOrThrow({
+        where: { id: sessionId },
+      });
+    }
+
+    return this.prisma.onlineGameSession.update({
+      where: { id: sessionId },
+      data,
+    });
+  }
 
   async validateOwnershipAndExpirationAiGameSession(sessionId: number, userId: number): Promise<void> {
     const session = await this.prisma.aiGameSession.findUnique({
