@@ -4,6 +4,8 @@ This repository contains a fullstack Battleship game built with a React frontend
 
 The project currently includes production-style authentication, persistent user profiles, board presets, AI gameplay, and a fully implemented realtime multiplayer mode.
 
+Project is available via https://battleship-frontend-worker.ilya-yourkov.workers.dev/
+
 ## Project Structure
 
 ```text
@@ -15,6 +17,7 @@ fullstack/
 ## Tech Stack
 
 ### Backend
+
 - `NestJS` `11.x` — modular API architecture (controllers, services, modules)
 - `Prisma` `7.x` + `PostgreSQL` — typed data access, migrations, and relational persistence
 - `JWT` (`@nestjs/jwt`) — access and refresh token authentication
@@ -25,6 +28,7 @@ fullstack/
 - `Joi` (`@nestjs/config`) — environment configuration validation at startup
 
 ### Frontend
+
 - `React` `19.x` + `TypeScript` `6.x` — strongly typed component architecture
 - `Vite` `8.x` — fast local dev server and production build pipeline
 - `TanStack Router` `1.x` — type-safe route tree and nested app layouts
@@ -37,7 +41,9 @@ fullstack/
 ## Architecture
 
 ### Frontend Architecture (FSD)
+
 The frontend follows a Feature-Sliced Design style with clear responsibility boundaries:
+
 - `app` — application bootstrap, providers, routing entry points
 - `pages` — route-level page composition
 - `widgets` — larger UI blocks assembled from features/entities
@@ -48,7 +54,9 @@ The frontend follows a Feature-Sliced Design style with clear responsibility bou
 This structure keeps business logic close to use-cases and reduces coupling between UI layers.
 
 ### Backend Architecture (NestJS Canonical Style)
+
 The backend uses NestJS module-oriented architecture:
+
 - `module` level boundaries for each domain (`auth`, `users`, `ai-game`, `multiplayer`, `token`, `session`)
 - `controllers` for transport-level concerns (HTTP/WebSocket handlers)
 - `services` for business logic orchestration
@@ -78,6 +86,7 @@ This approach keeps transport, business logic, and data access separated and pre
 Base URL (local): `http://localhost:3000`
 
 ### Main REST endpoints
+
 - `POST /auth/register`
 - `POST /auth/login`
 - `POST /auth/logout`
@@ -92,6 +101,7 @@ Base URL (local): `http://localhost:3000`
 Swagger docs: `http://localhost:3000/docs`
 
 ### Realtime namespace
+
 - Namespace: `/multiplayer`
 - Current events include queue, move, resume, and resign flows for complete match lifecycle handling.
 
@@ -149,6 +159,7 @@ Frontend will be available at `http://localhost:5173`.
 ## Useful Scripts
 
 ### Backend
+
 - `npm run start:dev` — run API in watch mode
 - `npm run build` — build backend
 - `npm run prisma:generate` — generate Prisma client
@@ -157,8 +168,8 @@ Frontend will be available at `http://localhost:5173`.
 - `npm run test` — run tests
 
 ### Frontend
+
 - `npm run dev` — run frontend dev server
 - `npm run build` — typecheck + production build
 - `npm run preview` — preview production build
 - `npm run lint` — run ESLint
-
