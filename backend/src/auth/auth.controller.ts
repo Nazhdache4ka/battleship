@@ -35,6 +35,8 @@ export class AuthController {
       httpOnly: true,
       maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
       path: '/',
+      sameSite: 'none',
+      secure: true,
     });
 
     return { accessToken, user };
@@ -63,6 +65,8 @@ export class AuthController {
       httpOnly: true,
       maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
       path: '/',
+      sameSite: 'none',
+      secure: true,
     });
     return { accessToken, user };
   }
@@ -82,6 +86,8 @@ export class AuthController {
     response.clearCookie('refreshToken', {
       httpOnly: true,
       path: '/',
+      sameSite: 'none',
+      secure: true,
     });
 
     return { ok: true };
@@ -124,6 +130,8 @@ export class AuthController {
       httpOnly: true,
       maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
       path: '/',
+      sameSite: 'none',
+      secure: true,
     });
 
     return { accessToken: newAccessToken, user: refreshedUser };
