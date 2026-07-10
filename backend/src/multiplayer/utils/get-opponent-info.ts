@@ -1,6 +1,6 @@
 import { PrismaService } from 'src/prisma.service';
 
-export async function getOpponentInfo(userId: number, prisma: PrismaService) {
+export async function getOpponentInfo(userId: number, prisma: PrismaService, rating: number) {
   const opponent = await prisma.user.findUnique({
     where: {
       id: userId,
@@ -14,5 +14,8 @@ export async function getOpponentInfo(userId: number, prisma: PrismaService) {
     throw new Error('Opponent not found');
   }
 
-  return opponent;
+  return {
+    name: opponent.name,
+    rating,
+  };
 }

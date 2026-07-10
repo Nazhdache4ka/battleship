@@ -6,7 +6,7 @@ import { useMultiplayerGameStore, useMultiplayerSessionStore } from '../store';
 export function useMultiplayerHandlers() {
   const { board } = useGameStore();
   const { setMultiplayerPhase, setGameId, setWinnerUserId } = useMultiplayerSessionStore();
-  const { setBoard, setShips, setEnemyBoard, setEnemyShips } = useMultiplayerGameStore();
+  const { setBoard, setShips, setEnemyBoard, setEnemyShips, setUpdatedPlayerRating } = useMultiplayerGameStore();
 
   const socket = useMemo(() => {
     return getMultiplayerSocket();
@@ -20,7 +20,17 @@ export function useMultiplayerHandlers() {
     setShips([]);
     setEnemyBoard([]);
     setEnemyShips([]);
-  }, [setMultiplayerPhase, setGameId, setWinnerUserId, setBoard, setShips, setEnemyBoard, setEnemyShips]);
+    setUpdatedPlayerRating(null);
+  }, [
+    setMultiplayerPhase,
+    setGameId,
+    setWinnerUserId,
+    setBoard,
+    setShips,
+    setEnemyBoard,
+    setEnemyShips,
+    setUpdatedPlayerRating,
+  ]);
 
   const joinQueue = useCallback(() => {
     socket.emit('queue:join', { board });

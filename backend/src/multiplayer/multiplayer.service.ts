@@ -15,6 +15,7 @@ import { getMovePayload } from './utils/get-move-payload';
 import { COLUMN_NUMBER, ROW_NUMBER } from 'src/models/basic-constants';
 import { resumeGameTransaction } from './utils/resume-game-transaction';
 import { resignGameTransaction } from './utils/resign-game-transaction';
+import { WinnerTransactionResult, winnerTransaction } from './utils/winner-transaction';
 
 type ResumeTransactionResult = Awaited<ReturnType<typeof resumeGameTransaction>>;
 type ResignTransactionResult = Awaited<ReturnType<typeof resignGameTransaction>>;
@@ -50,19 +51,23 @@ export class MultiplayerService {
       try {
         const session = await createMatchmakingSession(player1, player2, this.prisma);
 
-        const { session: updatedSession } = await createMatchmakingRoom(player1, player2, server, this.prisma, session);
+        const {
+          session: updatedSession,
+          player1Rating,
+          player2Rating,
+        } = await createMatchmakingRoom(player1, player2, server, this.prisma, session);
 
-        const opponent1 = await getOpponentInfo(player2.userId, this.prisma);
+        const opponent1 = await getOpponentInfo(player2.userId, this.prisma, player2Rating);
 
-        const opponent2 = await getOpponentInfo(player1.userId, this.prisma);
+        const opponent2 = await getOpponentInfo(player1.userId, this.prisma, player1Rating);
 
         server
           .to(player1.socketId)
-          .emit('game:start', getInitialPayloadForPlayer(player1, player2, updatedSession, opponent1));
+          .emit('game:start', getInitialPayloadForPlayer(player1, player2, updatedSession, opponent1, player1Rating));
 
         server
           .to(player2.socketId)
-          .emit('game:start', getInitialPayloadForPlayer(player2, player1, updatedSession, opponent2));
+          .emit('game:start', getInitialPayloadForPlayer(player2, player1, updatedSession, opponent2, player2Rating));
       } catch (error) {
         this.queuePlayers.push(player1, player2);
         throw new Error(`Failed to create matchmaking room: ${error}`);
@@ -96,25 +101,31 @@ export class MultiplayerService {
 
       const winner = getMatchmakingWinner(appliedMove.newBoard, userId);
 
-      const currentTurnUserId = appliedMove.result === 'miss' ? opponent.userId : userId;
+      const currentTurnUserId = winner ? null : appliedMove.result === 'miss' ? opponent.userId : userId;
 
       await this.sessionService.updateOnlineGamePlayer(gameId, opponent.userId, {
         board: appliedMove.newBoard as unknown as [],
       });
 
-      await this.sessionService.updateOnlineGameSession(gameId, userId, { currentTurnUserId });
+      if (!winner) {
+        await this.sessionService.updateOnlineGameSession(gameId, userId, { currentTurnUserId });
+      }
+
+      let ratingResult: WinnerTransactionResult | null = null;
 
       if (winner) {
-        await this.sessionService.updateOnlineGameSession(gameId, userId, { status: 'FINISHED', winnerUserId: winner });
+        ratingResult = await winnerTransaction(this.prisma, gameId, winner);
       }
 
       server.to(player.socketId).emit('game:move:state', {
         currentTurnUserId,
         ...getMovePayload(player.board as unknown as Board, appliedMove.newBoard as unknown as Board, winner),
+        ...this.getRatingsForPlayer(player.userId, winner, ratingResult),
       });
       server.to(opponent.socketId).emit('game:move:state', {
         currentTurnUserId,
         ...getMovePayload(appliedMove.newBoard as unknown as Board, player.board as unknown as Board, winner),
+        ...this.getRatingsForPlayer(opponent.userId, winner, ratingResult),
       });
     } catch (error) {
       throw new Error(`Failed to handle move: ${error}`);
@@ -132,13 +143,14 @@ export class MultiplayerService {
     }
 
     try {
-      const { reconnectPlayer, reconnectOpponent }: ResumeTransactionResult = await resumeGameTransaction(
-        this.prisma,
-        userId,
-        clientSocketId
-      );
+      const {
+        reconnectPlayer,
+        reconnectOpponent,
+        reconnectPlayerRating,
+        reconnectOpponentRating,
+      }: ResumeTransactionResult = await resumeGameTransaction(this.prisma, userId, clientSocketId);
 
-      const opponentInfo = await getOpponentInfo(reconnectOpponent.userId, this.prisma);
+      const opponentInfo = await getOpponentInfo(reconnectOpponent.userId, this.prisma, reconnectOpponentRating);
 
       // eslint-disable-next-line @typescript-eslint/await-thenable
       await server.in(clientSocketId).socketsJoin(`game:${reconnectPlayer.sessionId}`);
@@ -154,7 +166,8 @@ export class MultiplayerService {
           reconnectOpponent.board as unknown as Board,
           winnerUserId
         ),
-        opponent: opponentInfo.name,
+        opponent: opponentInfo,
+        playerRating: reconnectPlayerRating,
       });
     } catch (error) {
       throw new Error(`Failed to resume game: ${error}`);
@@ -167,18 +180,35 @@ export class MultiplayerService {
         this.prisma,
         userId
       );
+      const ratingResult = await winnerTransaction(this.prisma, resignPlayer.sessionId, winnerUserId);
 
       server.to(resignPlayer.socketId).emit('game:move:state', {
         currentTurnUserId: null,
         ...getMovePayload(resignPlayer.board as unknown as Board, opponent.board as unknown as Board, winnerUserId),
+        ...this.getRatingsForPlayer(resignPlayer.userId, winnerUserId, ratingResult),
       });
 
       server.to(opponent.socketId).emit('game:move:state', {
         currentTurnUserId: null,
         ...getMovePayload(opponent.board as unknown as Board, resignPlayer.board as unknown as Board, winnerUserId),
+        ...this.getRatingsForPlayer(opponent.userId, winnerUserId, ratingResult),
       });
     } catch (error) {
       throw new Error(`Failed to resign game: ${error}`);
     }
+  }
+
+  private getRatingsForPlayer(
+    playerUserId: number,
+    winnerUserId: number | null,
+    ratingResult: WinnerTransactionResult | null
+  ): { playerRating?: number; opponentRating?: number } {
+    if (winnerUserId == null || !ratingResult) {
+      return {};
+    }
+
+    return playerUserId === winnerUserId
+      ? { playerRating: ratingResult.winner, opponentRating: ratingResult.loser }
+      : { playerRating: ratingResult.loser, opponentRating: ratingResult.winner };
   }
 }

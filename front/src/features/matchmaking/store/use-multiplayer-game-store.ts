@@ -12,6 +12,8 @@ interface MultiplayerGameStore {
   setEnemyShips: (enemyShips: IShip[]) => void;
   currentTurnUserId: number | null;
   setCurrentTurnUserId: (currentTurnUserId: number | null) => void;
+  updatedPlayerRating: number | null;
+  setUpdatedPlayerRating: (updatedPlayerRating: number | null) => void;
 }
 
 export const useMultiplayerGameStore = create<MultiplayerGameStore>(set => ({
@@ -25,4 +27,6 @@ export const useMultiplayerGameStore = create<MultiplayerGameStore>(set => ({
   setEnemyShips: (enemyShips: IShip[]) => set({ enemyShips }),
   currentTurnUserId: null,
   setCurrentTurnUserId: (currentTurnUserId: number | null) => set({ currentTurnUserId }),
+  updatedPlayerRating: null,
+  setUpdatedPlayerRating: (updatedPlayerRating: number | null) => set({ updatedPlayerRating }),
 }));

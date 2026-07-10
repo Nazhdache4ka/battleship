@@ -13,7 +13,7 @@ import { MultiplayerModule } from './multiplayer/multiplayer.module';
     PrismaModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.development'],
       validationSchema: Joi.object({
         PORT: Joi.number().port().default(3000),
         DATABASE_URL: Joi.string().uri().required(),

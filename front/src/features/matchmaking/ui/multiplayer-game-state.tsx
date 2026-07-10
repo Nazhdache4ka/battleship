@@ -7,10 +7,12 @@ import { useMultiplayerGameStore, useMultiplayerSessionStore } from '../store';
 
 export function MultiplayerGameState() {
   const currentTurnUserId = useMultiplayerGameStore(state => state.currentTurnUserId);
+  const updatedPlayerRating = useMultiplayerGameStore(state => state.updatedPlayerRating);
   const gameId = useMultiplayerSessionStore(state => state.gameId);
   const winnerUserId = useMultiplayerSessionStore(state => state.winnerUserId);
   const user = useAuthStore(state => state.user);
-  const opponentName = useMultiplayerSessionStore(state => state.opponentName);
+  const opponentInfo = useMultiplayerSessionStore(state => state.opponentInfo);
+  const playerRating = useMultiplayerSessionStore(state => state.playerRating);
 
   const isUserTurn = useMemo(() => currentTurnUserId === user?.id, [currentTurnUserId, user]);
   const isGameFinished = useMemo(() => winnerUserId !== null, [winnerUserId]);
@@ -18,8 +20,8 @@ export function MultiplayerGameState() {
   const winner = useMemo(() => {
     if (winnerUserId === null) return null;
     if (winnerUserId === user?.id) return user?.name ?? 'You';
-    return opponentName ?? 'Opponent';
-  }, [winnerUserId, user, opponentName]);
+    return opponentInfo?.name ?? 'Opponent';
+  }, [winnerUserId, user, opponentInfo]);
 
   return (
     <Box
@@ -32,7 +34,11 @@ export function MultiplayerGameState() {
         mb: 4,
       }}
     >
-      <PaperLottie text={user?.name}>
+      <PaperLottie
+        text={user?.name}
+        rating={playerRating}
+        updatedRating={updatedPlayerRating}
+      >
         <UserLottie />
       </PaperLottie>
       <Box
@@ -100,7 +106,10 @@ export function MultiplayerGameState() {
           )}
         </Paper>
       </Box>
-      <PaperLottie text={opponentName}>
+      <PaperLottie
+        text={opponentInfo?.name}
+        rating={opponentInfo?.rating}
+      >
         <UserLottie />
       </PaperLottie>
     </Box>

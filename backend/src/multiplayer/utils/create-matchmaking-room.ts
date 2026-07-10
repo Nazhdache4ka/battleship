@@ -38,7 +38,30 @@ export async function createMatchmakingRoom(
       },
     });
 
-    return { roomId, session: updatedSession };
+    const player1Rating = await prisma.user.findUnique({
+      where: { id: player1.userId },
+      select: {
+        rating: true,
+      },
+    });
+
+    const player2Rating = await prisma.user.findUnique({
+      where: { id: player2.userId },
+      select: {
+        rating: true,
+      },
+    });
+
+    if (!player1Rating || !player2Rating) {
+      throw new Error('Failed to get player ratings');
+    }
+
+    return {
+      roomId,
+      session: updatedSession,
+      player1Rating: player1Rating.rating,
+      player2Rating: player2Rating.rating,
+    };
   } catch (error) {
     await prisma.onlineGameSession.delete({
       where: { id: session.id },
