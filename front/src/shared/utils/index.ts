@@ -5,3 +5,4 @@ export * from './get-shallow-board';
 export * from './is-horizontal-ship';
 export * from './is-ship-sunk-after-turn';
 export * from './reset-board-and-ships';
+export * from './get-scale-animation';

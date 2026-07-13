@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import type { JsonValue } from '@prisma/client/runtime/client';
 import { PrismaService } from 'src/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 
@@ -42,7 +41,7 @@ export class UsersService {
       return [];
     }
 
-    const boardPreset = row.boardPreset as JsonValue;
+    const boardPreset = row.boardPreset;
     return boardPreset;
   }
 
@@ -53,5 +52,27 @@ export class UsersService {
     });
 
     return true;
+  }
+
+  async getLeaderboard() {
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        rating: true,
+        createdAt: true,
+      },
+      orderBy: [
+        {
+          rating: 'desc',
+        },
+        {
+          id: 'asc',
+        },
+      ],
+      take: 10,
+    });
+
+    return users;
   }
 }

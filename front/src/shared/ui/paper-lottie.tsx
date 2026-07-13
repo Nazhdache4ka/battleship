@@ -1,5 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { Paper, alpha, Typography } from '@mui/material';
+import { getScaleAnimation } from '../utils';
 
 interface PaperLottieProps {
   children: ReactNode;
@@ -30,15 +31,7 @@ export function PaperLottie({ children, text, rating, updatedRating }: PaperLott
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             color: 'transparent',
-            animation: 'ratingFadeIn 700ms ease-out',
-            '@keyframes ratingFadeIn': {
-              '0%': { opacity: 0, transform: 'scale(0.9)' },
-              '50%': { opacity: 0.5, transform: 'scale(1.1)' },
-              '100%': { opacity: 1, transform: 'scale(1)' },
-            },
-            '@media (prefers-reduced-motion: reduce)': {
-              animation: 'none',
-            },
+            ...getScaleAnimation(),
           }}
         >
           {`${rating} -> ${updatedRating}`}

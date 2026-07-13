@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Box, Chip, Paper, Typography, alpha } from '@mui/material';
 import { FaRegCircleStop } from 'react-icons/fa6';
 import { LuSwords } from 'react-icons/lu';
-import { useAuthStore, PaperLottie, UserLottie } from '@/shared';
+import { useAuthStore, PaperLottie, UserLottie, getScaleAnimation } from '@/shared';
 import { useMultiplayerGameStore, useMultiplayerSessionStore } from '../store';
 
 export function MultiplayerGameState() {
@@ -93,7 +93,11 @@ export function MultiplayerGameState() {
               label={isUserTurn ? 'Your Turn' : "Opponent's Turn"}
               variant="outlined"
               color={isUserTurn ? 'secondary' : 'primary'}
-              sx={{ mb: 1, fontWeight: 600 }}
+              sx={{
+                mb: 1,
+                fontWeight: 600,
+                ...(isUserTurn && getScaleAnimation()),
+              }}
             />
           )}
           {winner && (
