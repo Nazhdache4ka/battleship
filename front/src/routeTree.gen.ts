@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './app/__root'
 import { Route as MainLayoutRouteImport } from './app/_main/layout'
 import { Route as MainIndexRouteImport } from './app/_main/index'
+import { Route as MaininfoLeaderboardRouteImport } from './app/_main/(info)/leaderboard'
 import { Route as MaingameSinglePlayerRouteImport } from './app/_main/(game)/single-player'
 import { Route as MaingameMultiplayerRouteImport } from './app/_main/(game)/multiplayer'
 import { Route as MaingameGameModesRouteImport } from './app/_main/(game)/game-modes'
@@ -24,6 +25,11 @@ const MainLayoutRoute = MainLayoutRouteImport.update({
 const MainIndexRoute = MainIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => MainLayoutRoute,
+} as any)
+const MaininfoLeaderboardRoute = MaininfoLeaderboardRouteImport.update({
+  id: '/(info)/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => MainLayoutRoute,
 } as any)
 const MaingameSinglePlayerRoute = MaingameSinglePlayerRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/game-modes': typeof MaingameGameModesRoute
   '/multiplayer': typeof MaingameMultiplayerRoute
   '/single-player': typeof MaingameSinglePlayerRoute
+  '/leaderboard': typeof MaininfoLeaderboardRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/game-modes': typeof MaingameGameModesRoute
   '/multiplayer': typeof MaingameMultiplayerRoute
   '/single-player': typeof MaingameSinglePlayerRoute
+  '/leaderboard': typeof MaininfoLeaderboardRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/_main/(game)/game-modes': typeof MaingameGameModesRoute
   '/_main/(game)/multiplayer': typeof MaingameMultiplayerRoute
   '/_main/(game)/single-player': typeof MaingameSinglePlayerRoute
+  '/_main/(info)/leaderboard': typeof MaininfoLeaderboardRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/game-modes'
     | '/multiplayer'
     | '/single-player'
+    | '/leaderboard'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
     | '/game-modes'
     | '/multiplayer'
     | '/single-player'
+    | '/leaderboard'
   id:
     | '__root__'
     | '/_main'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '/_main/(game)/game-modes'
     | '/_main/(game)/multiplayer'
     | '/_main/(game)/single-player'
+    | '/_main/(info)/leaderboard'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -124,6 +136,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof MainIndexRouteImport
+      parentRoute: typeof MainLayoutRoute
+    }
+    '/_main/(info)/leaderboard': {
+      id: '/_main/(info)/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof MaininfoLeaderboardRouteImport
       parentRoute: typeof MainLayoutRoute
     }
     '/_main/(game)/single-player': {
@@ -171,6 +190,7 @@ interface MainLayoutRouteChildren {
   MaingameGameModesRoute: typeof MaingameGameModesRoute
   MaingameMultiplayerRoute: typeof MaingameMultiplayerRoute
   MaingameSinglePlayerRoute: typeof MaingameSinglePlayerRoute
+  MaininfoLeaderboardRoute: typeof MaininfoLeaderboardRoute
 }
 
 const MainLayoutRouteChildren: MainLayoutRouteChildren = {
@@ -180,6 +200,7 @@ const MainLayoutRouteChildren: MainLayoutRouteChildren = {
   MaingameGameModesRoute: MaingameGameModesRoute,
   MaingameMultiplayerRoute: MaingameMultiplayerRoute,
   MaingameSinglePlayerRoute: MaingameSinglePlayerRoute,
+  MaininfoLeaderboardRoute: MaininfoLeaderboardRoute,
 }
 
 const MainLayoutRouteWithChildren = MainLayoutRoute._addFileChildren(

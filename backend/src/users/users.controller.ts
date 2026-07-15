@@ -43,4 +43,10 @@ export class UsersController {
   saveUserBoardPreset(@Body() boardPreset: [], @Req() request: Request) {
     return this.usersService.saveUserBoardPreset(boardPreset, request.user!.id);
   }
+
+  @ApiOperation({ summary: 'Get leaderboard' })
+  @Get('leaderboard')
+  async getLeaderboard() {
+    return await this.usersService.getLeaderboard();
+  }
 }

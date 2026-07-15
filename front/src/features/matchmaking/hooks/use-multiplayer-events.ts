@@ -4,9 +4,18 @@ import { useMultiplayerGameStore, useMultiplayerSessionStore } from '../store';
 import { GameStatus, MultiplayerPhase } from '@/shared';
 
 export function useMultiplayerEvents() {
-  const { setGameId, setMultiplayerPhase, setGameStatus, setErrorMessage, setOpponentName, setWinnerUserId } =
-    useMultiplayerSessionStore();
-  const { setBoard, setShips, setEnemyBoard, setEnemyShips, setCurrentTurnUserId } = useMultiplayerGameStore();
+  const {
+    setGameId,
+    setMultiplayerPhase,
+    setGameStatus,
+    setErrorMessage,
+    opponentInfo,
+    setOpponentInfo,
+    setWinnerUserId,
+    setPlayerRating,
+  } = useMultiplayerSessionStore();
+  const { setBoard, setShips, setEnemyBoard, setEnemyShips, setCurrentTurnUserId, setUpdatedPlayerRating } =
+    useMultiplayerGameStore();
 
   const socket = useMemo(() => {
     return getMultiplayerSocket();
@@ -20,6 +29,18 @@ export function useMultiplayerEvents() {
       setEnemyShips(data.enemyShips);
       setCurrentTurnUserId(data.currentTurnUserId);
       setWinnerUserId(data.winnerUserId);
+
+      if (typeof data.playerRating === 'number') {
+        setUpdatedPlayerRating(data.playerRating);
+      }
+
+      if (typeof data.opponentRating === 'number' && opponentInfo) {
+        setOpponentInfo({
+          ...opponentInfo,
+          rating: data.opponentRating,
+        });
+      }
+
       if (data.winnerUserId) {
         setMultiplayerPhase(MultiplayerPhase.FINISHED);
         setGameStatus(GameStatus.FINISHED);
@@ -37,8 +58,12 @@ export function useMultiplayerEvents() {
     setEnemyShips,
     setCurrentTurnUserId,
     setWinnerUserId,
+    setPlayerRating,
+    opponentInfo,
+    setOpponentInfo,
     setMultiplayerPhase,
     setGameStatus,
+    setUpdatedPlayerRating,
   ]);
 
   useEffect(() => {
@@ -50,9 +75,10 @@ export function useMultiplayerEvents() {
       setGameId(data.gameId);
       setMultiplayerPhase(MultiplayerPhase.STARTED);
       setGameStatus(data.status);
-      setOpponentName(data.opponent);
+      setOpponentInfo(data.opponent);
       setCurrentTurnUserId(data.currentTurnUserId);
       setWinnerUserId(data.winnerUserId ?? null);
+      setPlayerRating(data.playerRating);
     });
 
     socket.on('game:start', data => {
@@ -63,9 +89,11 @@ export function useMultiplayerEvents() {
       setGameId(data.gameId);
       setMultiplayerPhase(MultiplayerPhase.STARTED);
       setGameStatus(GameStatus.ACTIVE);
-      setOpponentName(data.opponent);
+      setOpponentInfo(data.opponent);
       setCurrentTurnUserId(data.currentTurnUserId);
       setWinnerUserId(null);
+      setPlayerRating(data.playerRating);
+      setUpdatedPlayerRating(null);
     });
 
     socket.on('game:error', data => {
@@ -92,12 +120,14 @@ export function useMultiplayerEvents() {
     setMultiplayerPhase,
     setGameStatus,
     setErrorMessage,
-    setOpponentName,
+    setOpponentInfo,
     setBoard,
     setShips,
     setEnemyBoard,
     setEnemyShips,
     setCurrentTurnUserId,
     setWinnerUserId,
+    setPlayerRating,
+    setUpdatedPlayerRating,
   ]);
 }

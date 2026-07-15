@@ -1,15 +1,24 @@
-import { OnlineGamePlayer, Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma.service';
 
 type ReconnectPlayerWithSession = Prisma.OnlineGamePlayerGetPayload<{
-  include: { session: true };
+  include: { session: true; user: { select: { name: true; rating: true } } };
+}>;
+
+type ReconnectOpponent = Prisma.OnlineGamePlayerGetPayload<{
+  include: { user: { select: { name: true; rating: true } } };
 }>;
 
 export async function resumeGameTransaction(
   prisma: PrismaService,
   userId: number,
   clientSocketId: string
-): Promise<{ reconnectPlayer: ReconnectPlayerWithSession; reconnectOpponent: OnlineGamePlayer }> {
+): Promise<{
+  reconnectPlayer: ReconnectPlayerWithSession;
+  reconnectOpponent: ReconnectOpponent;
+  reconnectPlayerRating: number;
+  reconnectOpponentRating: number;
+}> {
   const now = new Date();
 
   return prisma.$transaction(async tx => {
@@ -36,6 +45,12 @@ export async function resumeGameTransaction(
       },
       include: {
         session: true,
+        user: {
+          select: {
+            name: true,
+            rating: true,
+          },
+        },
       },
       orderBy: {
         session: {
@@ -48,10 +63,18 @@ export async function resumeGameTransaction(
       throw new Error('Player not found for active game');
     }
 
-    const reconnectOpponent: OnlineGamePlayer | null = await tx.onlineGamePlayer.findFirst({
+    const reconnectOpponent: ReconnectOpponent | null = await tx.onlineGamePlayer.findFirst({
       where: {
         sessionId: reconnectPlayer.sessionId,
         userId: { not: userId },
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            rating: true,
+          },
+        },
       },
     });
 
@@ -64,6 +87,11 @@ export async function resumeGameTransaction(
       data: { socketId: clientSocketId },
     });
 
-    return { reconnectPlayer, reconnectOpponent };
+    return {
+      reconnectPlayer,
+      reconnectOpponent,
+      reconnectPlayerRating: reconnectPlayer.user.rating,
+      reconnectOpponentRating: reconnectOpponent.user.rating,
+    };
   });
 }

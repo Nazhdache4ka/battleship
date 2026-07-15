@@ -2,13 +2,14 @@ import { Board, IQueuePlayer } from 'src/types/interfaces';
 import { getEnemyBoard } from 'src/utils/game-logic/get-enemy-board';
 import { getShallowBoard } from 'src/utils/game-logic/get-shallow-board';
 import { getShipsFromBoard } from 'src/utils/game-logic/get-ships-from-board';
-import { OnlineGameSession, User } from 'src/generated/prisma/client';
+import { OnlineGameSession } from 'src/generated/prisma/client';
 
 export function getInitialPayloadForPlayer(
   player: IQueuePlayer,
   enemy: IQueuePlayer,
   session: OnlineGameSession,
-  opponent: Pick<User, 'name'>
+  opponent: { name: string; rating: number },
+  playerRating: number
 ) {
   const board = getShallowBoard(player.board);
   const ships = getShipsFromBoard(player.board);
@@ -24,6 +25,7 @@ export function getInitialPayloadForPlayer(
     ships,
     enemyBoard,
     enemyShips,
-    opponent: opponent.name,
+    opponent,
+    playerRating,
   };
 }

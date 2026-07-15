@@ -10,10 +10,12 @@ interface MultiplayerSessionStore {
   setMultiplayerPhase: (multiplayerPhase: MultiplayerPhase) => void;
   winnerUserId: number | null;
   setWinnerUserId: (winnerUserId: number | null) => void;
-  opponentName: string | null;
-  setOpponentName: (opponentName: string | null) => void;
+  opponentInfo: { name: string; rating: number } | null;
+  setOpponentInfo: (opponentInfo: { name: string; rating: number } | null) => void;
   errorMessage: string | null;
   setErrorMessage: (errorMessage: string | null) => void;
+  playerRating: number | null;
+  setPlayerRating: (playerRating: number | null) => void;
 }
 
 export const useMultiplayerSessionStore = create<MultiplayerSessionStore>(set => ({
@@ -25,8 +27,10 @@ export const useMultiplayerSessionStore = create<MultiplayerSessionStore>(set =>
   setMultiplayerPhase: (multiplayerPhase: MultiplayerPhase) => set({ multiplayerPhase }),
   winnerUserId: null,
   setWinnerUserId: (winnerUserId: number | null) => set({ winnerUserId }),
-  opponentName: null,
-  setOpponentName: (opponentName: string | null) => set({ opponentName }),
+  opponentInfo: null,
+  setOpponentInfo: (opponentInfo: { name: string; rating: number } | null) => set({ opponentInfo }),
   errorMessage: null,
   setErrorMessage: (errorMessage: string | null) => set({ errorMessage }),
+  playerRating: null,
+  setPlayerRating: (playerRating: number | null) => set({ playerRating }),
 }));

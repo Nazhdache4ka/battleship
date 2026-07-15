@@ -1,18 +1,18 @@
 import { OnlineGamePlayer, Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma.service';
 
-type ReconnectPlayerWithSession = Prisma.OnlineGamePlayerGetPayload<{
-  include: { session: true };
+type ResignPlayer = Prisma.OnlineGamePlayerGetPayload<{
+  select: { sessionId: true; socketId: true; board: true; userId: true };
 }>;
 
 export async function resignGameTransaction(
   prisma: PrismaService,
   userId: number
-): Promise<{ resignPlayer: ReconnectPlayerWithSession; opponent: OnlineGamePlayer; winnerUserId: number | null }> {
+): Promise<{ resignPlayer: ResignPlayer; opponent: OnlineGamePlayer; winnerUserId: number }> {
   const now = new Date();
 
   return prisma.$transaction(async tx => {
-    const resignPlayer: ReconnectPlayerWithSession | null = await tx.onlineGamePlayer.findFirst({
+    const resignPlayer: ResignPlayer | null = await tx.onlineGamePlayer.findFirst({
       where: {
         userId,
         session: {
@@ -20,8 +20,11 @@ export async function resignGameTransaction(
           expiresAt: { gt: now },
         },
       },
-      include: {
-        session: true,
+      select: {
+        sessionId: true,
+        socketId: true,
+        board: true,
+        userId: true,
       },
       orderBy: {
         session: {
@@ -45,16 +48,7 @@ export async function resignGameTransaction(
       throw new Error('Opponent not found for active game');
     }
 
-    const winnerUserId: number | null = opponent.userId;
-
-    await tx.onlineGameSession.update({
-      where: { id: resignPlayer.sessionId },
-      data: {
-        status: 'FINISHED',
-        winnerUserId,
-        currentTurnUserId: null,
-      },
-    });
+    const winnerUserId = opponent.userId;
 
     return { resignPlayer, opponent, winnerUserId };
   });

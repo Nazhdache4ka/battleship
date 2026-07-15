@@ -15,3 +15,5 @@ export const DEFAULT_FLEET_SPEC = [
   { id: 'ship-1c', size: 1 },
   { id: 'ship-1d', size: 1 },
 ] as const;
+
+export const RATING_DELTA = 10;
