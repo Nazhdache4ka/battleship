@@ -12,10 +12,12 @@ import {
   alpha,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import { axiosConfig, type IUser } from '@/shared';
-import { getFormattedDate } from '../lib';
+import { Link } from '@tanstack/react-router';
+import { axiosConfig, type IUser, getFormattedDate, useAuthStore } from '@/shared';
 
 export function Leaderboard() {
+  const userAuth = useAuthStore(state => state.user);
+
   const { data: leaderboard, isLoading } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: () =>
@@ -59,6 +61,10 @@ export function Leaderboard() {
             {leaderboard?.map((user, index) => {
               const formattedDate = getFormattedDate(user.createdAt);
 
+              const isCurrentUser = userAuth?.id === user.id;
+
+              const link = isCurrentUser ? '/user-private-profile' : `/users/$id`;
+
               return (
                 <TableRow key={user.id}>
                   <TableCell
@@ -71,7 +77,14 @@ export function Leaderboard() {
                     {index + 1}
                   </TableCell>
                   <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.name}</TableCell>
+                  <TableCell>
+                    <Link
+                      to={link}
+                      params={{ id: user.id.toString() }}
+                    >
+                      {user.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>{user.rating}</TableCell>
                   <TableCell>{formattedDate}</TableCell>
                 </TableRow>

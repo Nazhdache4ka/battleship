@@ -107,3 +107,8 @@ export const MultiplayerPhase = {
 } as const;
 
 export type MultiplayerPhase = (typeof MultiplayerPhase)[keyof typeof MultiplayerPhase];
+
+export type UserRatingHistory = {
+  rating: number;
+  createdAt: string;
+};

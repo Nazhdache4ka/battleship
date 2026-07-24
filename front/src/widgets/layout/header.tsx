@@ -35,6 +35,11 @@ export function Header() {
     setAnchorElUser(null);
   };
 
+  const handleNavigateToProfile = () => {
+    setAnchorElUser(null);
+    navigate({ to: '/user-private-profile' });
+  };
+
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
@@ -83,7 +88,7 @@ export function Header() {
                   open={open}
                   onClose={handleCloseUserMenu}
                 >
-                  <MenuItem onClick={handleCloseUserMenu}>Profile</MenuItem>
+                  <MenuItem onClick={handleNavigateToProfile}>Profile</MenuItem>
                   <MenuItem onClick={handleCloseUserMenu}>Settings</MenuItem>
                   <MenuItem
                     onClick={handleCloseUserMenu}
