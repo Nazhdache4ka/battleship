@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import bcryptjs from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
@@ -74,5 +76,65 @@ export class UsersService {
     });
 
     return users;
+  }
+
+  async getRatingHistory(userId: number) {
+    const ratingHistory = await this.prisma.userRatingHistory.findMany({
+      where: { userId: Number(userId) },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return ratingHistory;
+  }
+
+  async getUserInfo(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: Number(userId) },
+      select: { name: true, rating: true, createdAt: true },
+    });
+
+    return user;
+  }
+
+  async getMe(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: Number(userId) },
+      select: { name: true, rating: true, createdAt: true, email: true, id: true },
+    });
+
+    return user;
+  }
+
+  async patchUserName(userId: number, name: string) {
+    await this.prisma.user.update({
+      where: { id: Number(userId) },
+      data: { name },
+    });
+  }
+
+  async patchUserEmail(userId: number, email: string) {
+    try {
+      await this.prisma.user.update({
+        where: { id: Number(userId) },
+        data: { email },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException('User with this email already exists');
+      }
+
+      throw error;
+    }
+  }
+
+  async patchUserPassword(userId: number, password: string) {
+    const hashPassword = await bcryptjs.hash(password, 10);
+
+    await this.prisma.user.update({
+      where: { id: Number(userId) },
+      data: { password: hashPassword },
+    });
   }
 }

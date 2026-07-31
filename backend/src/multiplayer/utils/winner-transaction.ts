@@ -72,6 +72,20 @@ export async function winnerTransaction(
       data: { rating: loserNewRating },
     });
 
+    await tx.userRatingHistory.create({
+      data: {
+        userId: winnerPlayer.userId,
+        rating: winnerNewRating,
+      },
+    });
+
+    await tx.userRatingHistory.create({
+      data: {
+        userId: loserPlayer.userId,
+        rating: loserNewRating,
+      },
+    });
+
     return {
       winner: winnerNewRating,
       loser: loserNewRating,

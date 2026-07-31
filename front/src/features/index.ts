@@ -3,3 +3,4 @@ export * from './board-setting';
 export * from './ai-game';
 export * from './matchmaking';
 export * from './leaderboard';
+export * from './user';

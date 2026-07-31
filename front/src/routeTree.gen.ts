@@ -11,12 +11,14 @@
 import { Route as rootRouteImport } from './app/__root'
 import { Route as MainLayoutRouteImport } from './app/_main/layout'
 import { Route as MainIndexRouteImport } from './app/_main/index'
+import { Route as MainuserUserPrivateProfileRouteImport } from './app/_main/(user)/user-private-profile'
 import { Route as MaininfoLeaderboardRouteImport } from './app/_main/(info)/leaderboard'
 import { Route as MaingameSinglePlayerRouteImport } from './app/_main/(game)/single-player'
 import { Route as MaingameMultiplayerRouteImport } from './app/_main/(game)/multiplayer'
 import { Route as MaingameGameModesRouteImport } from './app/_main/(game)/game-modes'
 import { Route as MainauthRegisterRouteImport } from './app/_main/(auth)/register'
 import { Route as MainauthLoginRouteImport } from './app/_main/(auth)/login'
+import { Route as MainuserUsersIdRouteImport } from './app/_main/(user)/users.$id'
 
 const MainLayoutRoute = MainLayoutRouteImport.update({
   id: '/_main',
@@ -27,6 +29,12 @@ const MainIndexRoute = MainIndexRouteImport.update({
   path: '/',
   getParentRoute: () => MainLayoutRoute,
 } as any)
+const MainuserUserPrivateProfileRoute =
+  MainuserUserPrivateProfileRouteImport.update({
+    id: '/(user)/user-private-profile',
+    path: '/user-private-profile',
+    getParentRoute: () => MainLayoutRoute,
+  } as any)
 const MaininfoLeaderboardRoute = MaininfoLeaderboardRouteImport.update({
   id: '/(info)/leaderboard',
   path: '/leaderboard',
@@ -57,6 +65,11 @@ const MainauthLoginRoute = MainauthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => MainLayoutRoute,
 } as any)
+const MainuserUsersIdRoute = MainuserUsersIdRouteImport.update({
+  id: '/(user)/users/$id',
+  path: '/users/$id',
+  getParentRoute: () => MainLayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
@@ -66,6 +79,8 @@ export interface FileRoutesByFullPath {
   '/multiplayer': typeof MaingameMultiplayerRoute
   '/single-player': typeof MaingameSinglePlayerRoute
   '/leaderboard': typeof MaininfoLeaderboardRoute
+  '/user-private-profile': typeof MainuserUserPrivateProfileRoute
+  '/users/$id': typeof MainuserUsersIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
@@ -75,6 +90,8 @@ export interface FileRoutesByTo {
   '/multiplayer': typeof MaingameMultiplayerRoute
   '/single-player': typeof MaingameSinglePlayerRoute
   '/leaderboard': typeof MaininfoLeaderboardRoute
+  '/user-private-profile': typeof MainuserUserPrivateProfileRoute
+  '/users/$id': typeof MainuserUsersIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,6 +103,8 @@ export interface FileRoutesById {
   '/_main/(game)/multiplayer': typeof MaingameMultiplayerRoute
   '/_main/(game)/single-player': typeof MaingameSinglePlayerRoute
   '/_main/(info)/leaderboard': typeof MaininfoLeaderboardRoute
+  '/_main/(user)/user-private-profile': typeof MainuserUserPrivateProfileRoute
+  '/_main/(user)/users/$id': typeof MainuserUsersIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +116,8 @@ export interface FileRouteTypes {
     | '/multiplayer'
     | '/single-player'
     | '/leaderboard'
+    | '/user-private-profile'
+    | '/users/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,6 +127,8 @@ export interface FileRouteTypes {
     | '/multiplayer'
     | '/single-player'
     | '/leaderboard'
+    | '/user-private-profile'
+    | '/users/$id'
   id:
     | '__root__'
     | '/_main'
@@ -116,6 +139,8 @@ export interface FileRouteTypes {
     | '/_main/(game)/multiplayer'
     | '/_main/(game)/single-player'
     | '/_main/(info)/leaderboard'
+    | '/_main/(user)/user-private-profile'
+    | '/_main/(user)/users/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -136,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof MainIndexRouteImport
+      parentRoute: typeof MainLayoutRoute
+    }
+    '/_main/(user)/user-private-profile': {
+      id: '/_main/(user)/user-private-profile'
+      path: '/user-private-profile'
+      fullPath: '/user-private-profile'
+      preLoaderRoute: typeof MainuserUserPrivateProfileRouteImport
       parentRoute: typeof MainLayoutRoute
     }
     '/_main/(info)/leaderboard': {
@@ -180,6 +212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainauthLoginRouteImport
       parentRoute: typeof MainLayoutRoute
     }
+    '/_main/(user)/users/$id': {
+      id: '/_main/(user)/users/$id'
+      path: '/users/$id'
+      fullPath: '/users/$id'
+      preLoaderRoute: typeof MainuserUsersIdRouteImport
+      parentRoute: typeof MainLayoutRoute
+    }
   }
 }
 
@@ -191,6 +230,8 @@ interface MainLayoutRouteChildren {
   MaingameMultiplayerRoute: typeof MaingameMultiplayerRoute
   MaingameSinglePlayerRoute: typeof MaingameSinglePlayerRoute
   MaininfoLeaderboardRoute: typeof MaininfoLeaderboardRoute
+  MainuserUserPrivateProfileRoute: typeof MainuserUserPrivateProfileRoute
+  MainuserUsersIdRoute: typeof MainuserUsersIdRoute
 }
 
 const MainLayoutRouteChildren: MainLayoutRouteChildren = {
@@ -201,6 +242,8 @@ const MainLayoutRouteChildren: MainLayoutRouteChildren = {
   MaingameMultiplayerRoute: MaingameMultiplayerRoute,
   MaingameSinglePlayerRoute: MaingameSinglePlayerRoute,
   MaininfoLeaderboardRoute: MaininfoLeaderboardRoute,
+  MainuserUserPrivateProfileRoute: MainuserUserPrivateProfileRoute,
+  MainuserUsersIdRoute: MainuserUsersIdRoute,
 }
 
 const MainLayoutRouteWithChildren = MainLayoutRoute._addFileChildren(
