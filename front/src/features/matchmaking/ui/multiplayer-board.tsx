@@ -35,6 +35,8 @@ export function MultiplayerBoard({ onResign, onBackToLobby }: MultiplayerBoardPr
     };
   }, [sessionId]);
 
+  if (!board || !enemyBoard) return null;
+
   return (
     <>
       <MultiplayerGameState />
